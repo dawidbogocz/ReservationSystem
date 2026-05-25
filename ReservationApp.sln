@@ -5,7 +5,7 @@ VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReservationApp", "ReservationApp.csproj", "{11DC888C-AAAF-4234-A3EA-9E6C4DAF4796}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReservationApp.DataAccess", "ReservationApp.Data\ReservationApp.Data.csproj", "{4F5D4671-D021-49F9-A31C-4A7BBCF0CFDA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReservationApp.Data", "ReservationApp.Data\ReservationApp.Data.csproj", "{4F5D4671-D021-49F9-A31C-4A7BBCF0CFDA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReservationApp.Models", "ReservationApp.Models\ReservationApp.Models.csproj", "{A58DB6B4-C879-4896-B8AA-5D1A012D64C8}"
 EndProject
