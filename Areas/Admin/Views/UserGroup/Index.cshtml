@@ -1,0 +1,78 @@
+﻿@model IEnumerable<CarReservation.Models.UserGroup>
+
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">Grupy użytkowników</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body p-4">
+        <div class="row pb-3">
+            <div class="col-6"></div>
+            <div class="col-6 text-end">
+                <a asp-area="Admin" asp-controller="UserGroup" asp-action="Upsert" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Dodaj grupę
+                </a>
+            </div>
+        </div>
+
+        <table class="table table-bordered table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Nazwa</th>
+                    <th>Managerowie</th>
+                    <th>Pracownicy</th>
+                    <th style="width:180px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var group in Model)
+                {
+                    <tr>
+                        <td>@group.Name</td>
+
+                        <td>
+                            @if (group.Managers != null && group.Managers.Any())
+                            {
+                                @string.Join(", ", group.Managers.Select(x => $"{x.Manager.FirstName} {x.Manager.LastName}"))
+                            }
+                            else
+                            {
+                                <span class="text-muted">Brak</span>
+                            }
+                        </td>
+
+                        <td>@(group.Users?.Count ?? 0)</td>
+
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a asp-area="Admin"
+                                   asp-controller="UserGroup"
+                                   asp-action="Upsert"
+                                   asp-route-id="@group.Id"
+                                   class="btn btn-primary mx-1">
+                                    <i class="bi bi-pencil-square"></i> Edytuj
+                                </a>
+
+                                <form asp-area="Admin"
+                                      asp-controller="UserGroup"
+                                      asp-action="Delete"
+                                      asp-route-id="@group.Id"
+                                      method="post"
+                                      onsubmit="return confirm('Czy na pewno usunąć tę grupę?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger mx-1">
+                                        <i class="bi bi-trash-fill"></i> Usuń
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

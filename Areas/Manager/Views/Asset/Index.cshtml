@@ -1,0 +1,224 @@
+﻿@using System.Security.Claims;
+@model List<Asset>
+
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">Lista Samochodów</h2>
+            </div>
+
+
+            <div class="row mt-3">
+                <div class="col-md-7 d-flex flex-wrap gap-2">
+                    <select id="makeFilter" class="form-select w-auto">
+                        <option value="">Marka (wszystkie)</option>
+                        @foreach (var mk in Model.Select(c => c.Make).Distinct().OrderBy(m => m))
+                        {
+                            <option value="@mk">@mk</option>
+                        }
+                    </select>
+
+                    <select id="dirtyFilter" class="form-select w-auto">
+                        <option value="">Czystość (wszystkie)</option>
+                        <option value="Brudny">Brudny</option>
+                        <option value="Czysty">Czysty</option>
+                    </select>
+
+                    <select id="vtFilter" class="form-select w-auto">
+                        <option value="">Videotolling (wsz.)</option>
+                        <option value="Tak">Tak</option>
+                        <option value="Nie">Nie</option>
+                    </select>
+                </div>
+
+                <div class="col-md-5 text-end">
+                    <button id="exportBtn" class="btn btn-success me-2">
+                        <i class="bi bi-file-earmark-excel"></i> Excel
+                    </button>
+                    <a asp-area="Manager" asp-controller="Asset" asp-action="Create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Dodaj Samochód
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        @if (Model.Any(car => car.InspectionDate < DateOnly.FromDateTime(DateTime.Now)))
+        {
+            <div class="alert alert-warning" role="alert">
+                Uwaga: Jeden lub więcej samochodów ma przeterminowany termin przeglądu!
+            </div>
+        }
+        @if (Model.Any(car => car.ServiceDate < DateOnly.FromDateTime(DateTime.Now)))
+        {
+            <div class="alert alert-warning">
+                Uwaga: Jeden lub więcej samochodów ma przeterminowany termin serwisu!
+            </div>
+        }
+
+
+        <table id="carTable" class="table table-bordered table-striped table-responsive" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th>Zdjęcie</th>
+                    <th>Numer rejestracji</th>
+                    <th>Typ pojazdu</th>
+                    <th>Marka</th>
+                    <th>Model</th>
+                    <th>Data przeglądu</th>
+                    <th>Data serwisu</th>
+                    <th>Usterki</th>
+                    <th>Stan czystości</th>
+                    <th>Videotoling</th>
+                    <th>Przebieg (km)</th>
+                    <th>Paliwo (%)</th>
+                    <th>Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var obj in Model)
+                {
+                    <tr class="@(obj.InspectionDate < DateOnly.FromDateTime(DateTime.Now) ? "table-danger" : "")">
+                        <td class="w-25">
+                            <img class="img-fluid img-thumbnail rounded mx-auto d-block" src="@obj.ImageUrl" style="border-radius:5px; border:1px solid #bbb9b9" />
+                        </td>
+                        <td>@obj.AssetTag</td>
+						<td>@obj.AssetType</td>
+                        <td>@obj.Make</td>
+                        <td>@obj.Model</td>
+                        <td>@obj.InspectionDate.ToString("dd-MM-yyyy")</td>
+                        <td>@obj.ServiceDate.ToString("dd-MM-yyyy")</td>
+                        <td>
+                            @if (obj.Faults != null && obj.Faults.Any())
+                            {
+                                bool tmp = true;
+                                @foreach (var fault in obj.Faults)
+                                {
+                                    if (!fault.IsFixed)
+                                    {
+                                        tmp = true;
+                                        <ul>
+                                            <li>@fault.Description</li>
+                                        </ul>
+                                    }
+                                    else
+                                    {
+                                        tmp = false;
+                                    }
+                                }
+                                if (!tmp)
+                                {
+                                    <span>Brak usterek</span>
+                                }
+                            }
+                            else
+                            {
+                                <span>Brak usterek</span>
+                            }
+                        </td>
+                        <td>
+                            @(obj.IsDamaged ? "Brudny" : "Czysty")
+                        </td>
+                        <td>
+                            @(obj.HasTracking ? "Tak" : "Nie")
+                        </td>
+                        <td>@obj.Mileage</td>
+                        <td>@obj.FuelLevel</td>
+                        <td>
+                            <div class="d-flex flex-wrap">
+                                <a asp-area="Manager" asp-controller="Asset" asp-action="Edit" asp-route-id="@obj.AssetTag" class="btn btn-outline-primary mt-2 mx-2 flex-grow-1">
+                                    <i class="bi bi-pencil"></i> Edytuj
+                                </a>
+                                <button type="button" onclick="deleteCar('@obj.AssetTag')" class="btn btn-outline-danger mt-2 mx-2 flex-grow-1">
+                                    <i class="bi bi-trash3"></i> Usuń
+                                </button>
+                                <a asp-area="Manager" asp-controller="Fault" asp-action="Upsert" asp-route-carNumberPlate="@obj.AssetTag" asp-route-userId="@User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)" class="btn btn-outline-info mt-2 mx-2 w-100">
+                                    <i class="bi bi-plus-circle"></i> Dodaj usterkę
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#carTable').DataTable({
+                responsive: true,
+                paging: true,
+                searching: true,
+                ordering: true,
+                lengthMenu: [5, 10, 25, 50],
+                language: {
+                    search: "Szukaj:",
+                    lengthMenu: "Pokaż _MENU_ samochodów",
+                    zeroRecords: "Brak pasujących samochodów",
+                    info: "Pokazano _START_ do _END_ z _TOTAL_ samochodów",
+                    infoEmpty: "Brak dostępnych samochodów",
+                    infoFiltered: "(przeszukano _MAX_ samochodów)",
+                    paginate: {
+                        first: "Pierwsza",
+                        last: "Ostatnia",
+                        next: "Następna",
+                        previous: "Poprzednia"
+                    }
+                }
+            });
+        });
+
+        $('#makeFilter' ).on('change', function () {
+            $('#carTable').DataTable().column(2).search($('#makeFilter').val()).draw()
+        });
+        $('#dirtyFilter').on('change', function () {
+            $('#carTable').DataTable().column(7).search($('#dirtyFilter').val()).draw()
+        });
+        $('#vtFilter'   ).on('change', function () {
+            $('#carTable').DataTable().column(8).search($('#vtFilter').val()).draw()
+        });
+
+        $('#exportBtn').on('click', function () {
+            const qs = $.param({
+                make:  $('#makeFilter').val(),
+                dirt:  $('#dirtyFilter').val(),
+                vt:    $('#vtFilter').val()
+            });
+            window.location = `/Manager/Asset/ExportToExcel?${qs}`;
+        });
+
+
+        function deleteCar(numberPlate) {
+            Swal.fire({
+                title: 'Potwierdzenie usunięcia',
+                text: 'Czy na pewno chcesz usunąć ten samochód?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Tak, usuń',
+                cancelButtonText: 'Anuluj'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/Manager/Asset/DeleteCar/${numberPlate}`,
+                        type: "DELETE",
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire('Sukces', response.message, 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Błąd', response.message, 'error');
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Błąd', 'Wystąpił błąd podczas przetwarzania żądania.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,331 @@
+﻿@model List<Fault>
+
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <h2 class="text-white py-2 text-center">Lista Usterek</h2>
+
+        <div class="row mt-3">
+            <div class="col-md-7 d-flex flex-wrap gap-2">
+                <select id="statusFilter" class="form-select w-auto">
+                    <option value="">Status (wszystkie)</option>
+                    <option value="Usterka naprawiona">Naprawione</option>
+                    <option value="Usterka nie naprawiona">Nienaprawione</option>
+                </select>
+
+                <select id="driveFilter" class="form-select w-auto">
+                    <option value="">Można jeździć (ws.)</option>
+                    <option value="Tak">Tak</option>
+                    <option value="Nie">Nie</option>
+                </select>
+
+                <select id="carFilter" class="form-select w-auto">
+                    <option value="">Samochód (wszystkie)</option>
+                    @foreach (var p in ViewBag.CarPlates as IEnumerable<string>)
+                    {
+                        <option value="@p">@p</option>
+                    }
+                </select>
+
+                <select id="userFilter" class="form-select w-auto">
+                    <option value="">Użytkownik (wszyscy)</option>
+                    @foreach (var u in ViewBag.Users as IEnumerable<string>)
+                    {
+                        <option value="@u">@u</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-5 text-end">
+                <button id="exportBtn" class="btn btn-success me-2">
+                    <i class="bi bi-file-earmark-excel"></i> Excel
+                </button>
+                <a asp-area="Manager" asp-controller="Fault" asp-action="Upsert" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Dodaj Usterkę
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body p-4">
+        <table id="faultTable" class="table table-bordered table-striped" width="100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Numer rejestracji</th>
+                    <th>Opis</th>
+                    <th>Zgłoszone przez</th>
+                    <th>Status</th>
+                    <th>Można jeździć</th>
+                    <th>Komentarz</th>
+                    <th>Opis naprawy</th>
+                    <th>Data zgłoszenia</th>
+                    <th>Data naprawy</th>
+                    <th>Naprawione przez</th>
+                    <th>Akcje</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- FIX MODAL -->
+<div class="modal fade" id="fixModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <form id="fixForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Oznacz jako naprawione</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" id="faultId" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Opis naprawy</label>
+                        <textarea id="fixDescription"
+                                  class="form-control"
+                                  rows="3"
+                                  required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Data naprawy</label>
+                        <input id="fixDate"
+                               type="date"
+                               class="form-control"
+                               required />
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                            id="cancelFix">
+                        Anuluj
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-success">
+                        Zapisz
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script>
+        $(document).ready(function () {
+
+            var table = $('#faultTable').DataTable({
+                "ajax": {
+                    "url": "/Manager/Fault/GetFaults",
+                    "type": "GET",
+                    "datatype": "json"
+                },
+                "columns": [
+                    { "data": "id" },
+                    { "data": "carNumberPlate" },
+                    { "data": "description" },
+                    { "data": "user" },
+                    {
+                        "data": null,
+                        "render": function (data, type, row) {
+                            const statusText = row.status;
+                            const checked = row.isFixed ? "checked" : "";
+                            const disabled = row.isFixed ? "disabled" : "";
+
+                            if (type === "filter" || type === "sort") {
+                                return statusText;
+                            }
+
+                            return `
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input fixToggle"
+                                           type="checkbox"
+                                           data-id="${row.id}"
+                                           ${checked}
+                                           ${disabled}>
+                                    <label class="form-check-label">
+                                        ${statusText}
+                                    </label>
+                                </div>`;
+                        }
+                    },
+                    {
+                        "data": "isDrivable",
+                        "render": d => d === "Tak"
+                            ? "<span class='badge bg-info'>Tak</span>"
+                            : "<span class='badge bg-secondary'>Nie</span>"
+                    },
+                    { "data": "comment", defaultContent: "-" },
+                    { "data": "fixDescription", defaultContent: "-" },
+                    {
+                        "data": "dateReported",
+                        "render": function (d) {
+                            if (!d) return "-";
+                            return new Date(d).toLocaleDateString();
+                        }
+                    },
+                    {
+                        "data": "fixDate",
+                        "render": function (d) {
+                            if (!d) return "-";
+                            return new Date(d).toLocaleDateString();
+                        }
+                    },
+                    {
+                        "data": null,
+                        "render": function (row) {
+                            if (!row.isFixed) return "-";
+                            return row.fixedByUser
+                                ? row.fixedByUser.fullName ?? row.fixedByUser.email
+                                : "Nieznany użytkownik";
+                        }
+                    },
+
+                    {
+                        "data": "id",
+                        "render": function (data) {
+                            return `
+                                <a href="/Manager/Fault/Upsert/${data}" class="btn btn-outline-primary mx-2">
+                                    <i class="bi bi-pencil"></i> Edytuj
+                                </a>
+                                <button onclick="deleteFault(${data})" class="btn btn-outline-danger mx-2">
+                                    <i class="bi bi-trash3"></i> Usuń
+                                </button>`;
+                        }
+                    }
+                ],
+                "responsive": true,
+                "language": {
+                    "search": "Szukaj:",
+                    "lengthMenu": "Pokaż _MENU_ usterek",
+                    "info": "Pokazano _START_ do _END_ z _TOTAL_ usterek",
+                    "zeroRecords": "Brak pasujących usterek",
+                    "infoEmpty": "Brak dostępnych usterek",
+                    "paginate": {
+                        "first": "Pierwsza",
+                        "last": "Ostatnia",
+                        "next": "Następna",
+                        "previous": "Poprzednia"
+                    }
+                }
+            });
+
+        $('#statusFilter').on('change', function () {
+            const v = $(this).val();
+            const pattern = v ? '^' + v + '$' : '';
+            table.column(4).search(pattern, true, false).draw();
+        });
+
+        $('#driveFilter').on('change', function () {
+            table.column(5).search(this.value).draw()
+        });
+
+        $('#carFilter').on('change', function () {
+            table.column(1).search(this.value).draw()
+        });
+
+        $('#userFilter').on('change', function () {
+            table.column(3).search(this.value).draw()
+        });
+
+        $('#exportBtn').on('click', function () {
+            const qs = $.param({
+                status: $('#statusFilter').val(),
+                drive: $('#driveFilter').val(),
+                car: $('#carFilter').val(),
+                user: $('#userFilter').val()
+            });
+            window.location = `/Manager/Fault/ExportToExcel?${qs}`;
+        });
+
+        let toggledCheckbox = null;
+
+        $('#faultTable').on("change", ".fixToggle", function () {
+
+            if ($(this).is(":checked")) {
+                toggledCheckbox = $(this);
+                $("#faultId").val($(this).data("id"));
+                $("#fixModal").modal("show");
+            }
+            else {
+                const id = $(this).data("id");
+
+                $.ajax({
+                    url: `/Manager/Fault/ToggleFixed/${id}`,
+                    type: "POST",
+                    success: function () {
+                        $('#faultTable').DataTable().ajax.reload(null, false);
+                    }
+                });
+            }
+        });
+
+        $("#cancelFix").on("click", function () {
+            if (toggledCheckbox)
+                $(toggledCheckbox).prop("checked", false);
+        });
+
+        $("#fixForm").on("submit", function (e) {
+            e.preventDefault();
+
+            $.ajax({
+                url: "/Manager/Fault/MarkFixed",
+                type: "POST",
+                data: {
+                    id: $("#faultId").val(),
+                    description: $("#fixDescription").val(),
+                    date: $("#fixDate").val()
+                },
+                success: function () {
+                    $("#fixModal").modal("hide");
+                    $('#faultTable').DataTable().ajax.reload(null, false);
+                }
+            });
+        });
+
+        });
+
+        function deleteFault(id) {
+            Swal.fire({
+                title: 'Potwierdzenie usunięcia',
+                text: 'Czy na pewno chcesz usunąć tę usterkę?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Tak, usuń',
+                cancelButtonText: 'Anuluj'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/Manager/Fault/DeleteFault/${id}`,
+                        type: "DELETE",
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire('Sukces', response.message, 'success')
+                                    .then(() => {
+                                        $('#faultTable').DataTable().ajax.reload();
+                                    });
+                            } else {
+                                Swal.fire('Błąd', response.message, 'error');
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Błąd', 'Wystąpił błąd podczas przetwarzania żądania.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

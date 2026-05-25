@@ -1,0 +1,79 @@
+﻿@model ReservationVM
+<div class="card shadow border-0 mt-4">
+	<div class="card-header bg-secondary bg-gradient ml-0 py-3">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-white py-2">@(Model.Reservation.Id != 0 ? "Edytuj" : "Dodaj") Rezerwacje</h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+		<form method="post">
+			<input asp-for="@Model.Reservation.Id" hidden />
+			<div class="border p-3 mt-4">
+				@*<div asp-validation-summary="ModelOnly"></div>*@
+				<div class="form-floating py-2 col-12">
+					<select asp-for="@Model.Reservation.AssetTag" asp-items="@Model.AssetList" class="form-select border-0 shadow">
+						<option disabled selected="">--Wybierz samochód--</option>
+					</select>
+					<label asp-for="@Model.Reservation.AssetTag" class="ms-2">Numer rejestracji</label>
+					<span asp-validation-for="@Model.Reservation.AssetTag" class="text-danger"></span>
+				</div>
+				<div class="form-floating py-2 col-12">
+					<select asp-for="@Model.Reservation.UserId" asp-items="@Model.UserList" class="form-select border-0 shadow">
+						<option disabled selected="">--Wybierz użytkownika--</option>
+					</select>
+					<label asp-for="@Model.Reservation.UserId" class="ms-2">Użytkownik</label>
+					<span asp-validation-for="@Model.Reservation.UserId" class="text-danger"></span>
+				</div>
+				<div class="form-floating py-2 col-12">
+					<input asp-for="@Model.Reservation.PickupDate" class="form-control border-0 shadow" />
+					<label asp-for="@Model.Reservation.PickupDate" class="ms-2">Data rezerwacji</label>
+					<span asp-validation-for="@Model.Reservation.PickupDate" class="text-danger"></span>
+				</div>
+				<div class="form-floating py-2 col-12">
+					<input asp-for="@Model.Reservation.ReturnDate" class="form-control border-0 shadow" />
+					<label asp-for="@Model.Reservation.ReturnDate" class="ms-2">Data oddania</label>
+					<span asp-validation-for="@Model.Reservation.ReturnDate" class="text-danger"></span>
+				</div>
+				<div class="form-floating py-2 col-12">
+					<input asp-for="@Model.Reservation.Destination" class="form-control border-0 shadow" />
+					<label asp-for="@Model.Reservation.Destination" class="ms-2">Cel rezerwacji</label>
+					<span asp-validation-for="@Model.Reservation.Destination" class="text-danger"></span>
+				</div>
+				<div class="form-check py-2 col-12">
+					<input asp-for="@Model.Reservation.Approval" class="form-check-input" type="radio" value="Oczekujace" /><label class="form-check-label ms-2">Oczekujący</label>
+				</div>
+				<div class="form-check py-2 col-12">
+					<input asp-for="@Model.Reservation.Approval" class="form-check-input" type="radio" value="Zaakceptowane" /><label class="form-check-label ms-2">Zaakceptowany</label>
+				</div>
+				<div class="form-check py-2 col-12">
+					<input asp-for="@Model.Reservation.Approval" class="form-check-input" type="radio" value="Odrzucone" /><label class="form-check-label ms-2">Odrzucony</label>
+				</div>
+				<span asp-validation-for="@Model.Reservation.Approval" class="text-danger"></span>
+				<div class="row pt-2">
+					<div class="col-6 col-md-3">
+						@if (Model.Reservation.Id != 0)
+						{
+							<button type="submit" class="btn btn-primary form-control">Edytuj</button>
+						}
+						else
+						{
+							<button type="submit" class="btn btn-primary form-control">Dodaj</button>
+						}
+					</div>
+					<div class="col-6 col-md-3">
+						<a asp-area="Manager" asp-controller="Reservation" asp-action="Index" class="btn btn-outline-primary border  form-control">Anuluj</a>
+					</div>
+				</div>
+
+
+			</div>
+		</form>
+	</div>
+</div>
+@section Scripts {
+	@{
+		<partial name="_ValidationScriptsPartial" />
+	}
+}

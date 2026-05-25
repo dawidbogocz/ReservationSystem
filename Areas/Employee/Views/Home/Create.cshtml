@@ -1,0 +1,60 @@
+﻿@model ReservationVM
+<div class="card shadow border-0 mt-4">
+	<div class="card-header bg-secondary bg-gradient ml-0 py-3">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-white py-2">Rezerwuj Samochód</h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+		<form method="post">
+			<input type="hidden" asp-for="Reservation.UserId"/>
+
+			<div class="border p-3 mt-4">
+				<div class="form-floating py-2 col-12">
+					<input asp-for="Reservation.AssetTag" asp-items="@Model.AssetList" class="form-control border-0 shadow" readonly>
+					<label asp-for="Reservation.AssetTag" class="ms-2">Numer rejestracji</label>
+					<input type="hidden" asp-for="Reservation.AssetTag" /> <!-- Hidden input to ensure value is submitted -->
+				</div>
+				<div class="form-floating py-2 col-12">
+					<input asp-for="Reservation.PickupDate" class="form-control border-0 shadow" readonly />
+					<label asp-for="Reservation.PickupDate" class="ms-2">Data rezerwacji</label>
+					<input type="hidden" asp-for="Reservation.PickupDate" /> <!-- Hidden input -->
+				</div>
+				<div class="form-floating py-2 col-12">
+					<input asp-for="Reservation.ReturnDate" class="form-control border-0 shadow" readonly />
+					<label asp-for="Reservation.ReturnDate" class="ms-2">Data oddania</label>
+					<input type="hidden" asp-for="Reservation.ReturnDate" /> <!-- Hidden input -->
+				</div>
+				<div class="form-floating py-2 col-12">
+					<input asp-for="Reservation.Destination" class="form-control border-0 shadow" required />
+					<label asp-for="Reservation.Destination" class="ms-2">Cel rezerwacji</label>
+					<span asp-validation-for="Reservation.Destination" class="text-danger"></span>
+				</div>
+				<div class="form-check py-2 col-12" hidden>
+					<input asp-for="Reservation.Approval" class="form-check-input" type="radio" name="Approval" value="Oczekujace" checked />
+					<label asp-for="Reservation.Approval" class="form-check-label ms-2">Oczekujący</label>
+				</div>
+				<div class="form-check py-2 col-12">
+					<input asp-for="Reservation.AcceptStatute" class="form-check-input" type="checkbox" id="acceptStatute" />
+					<label class="form-check-label" for="acceptStatute">
+						Akceptuję <a href="~/files/Regulamin.pdf" target="_blank">Regulamin</a>.
+					</label>
+					<span asp-validation-for="Reservation.AcceptStatute" class="text-danger"></span>
+				</div>
+				<div class="row pt-2">
+					<div class="col-6 col-md-3">
+						<button type="submit" class="btn btn-primary form-control">Rezerwuj</button>
+					</div>
+					<div class="col-6 col-md-3">
+						<a asp-area="Employee" asp-controller="Home" asp-action="Index" class="btn btn-outline-primary border form-control">Anuluj</a>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+}

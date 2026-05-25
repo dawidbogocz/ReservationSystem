@@ -1,0 +1,110 @@
+﻿@model CarReservation.Models.Reservation
+@{
+    string feedbackType = ViewBag.FeedbackType as string ?? "Pickup";
+    string formAction = feedbackType == "Pickup" ? "PickupFeedback" : "ReturnFeedback";
+    string title = feedbackType == "Pickup" ? "Feedback przy odbiorze" : "Feedback przy zwrocie";
+    ViewData["Title"] = title;
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">@title</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Numer rejestracyjny:</strong> @Model.AssetTag</p>
+            <p>
+                <strong>Data rezerwacji:</strong>
+                od @Model.PickupDate.ToString("dd-MM-yyyy HH:mm")
+                do @Model.ReturnDate.ToString("dd-MM-yyyy HH:mm")
+            </p>
+            <form asp-action="@formAction" method="post">
+                <input type="hidden" name="reservationId" value="@Model.Id" />
+                <div class="mb-3">
+                    <label class="form-label">Czy samochód jest brudny?</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="isCarDirty" id="dirtyYes" value="true" required />
+                            <label class="form-check-label" for="dirtyYes">Tak, jest brudny</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="isCarDirty" id="dirtyNo" value="false" />
+                            <label class="form-check-label" for="dirtyNo">Nie, nie jest brudny</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Opis usterek (opcjonalnie):</label>
+                    <div class="mb-3">
+                        
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="hasFaults" name="hasFaults" value="true" onchange="toggleFaultArea(this.checked)">
+                            <label class="form-check-label" for="hasFaults">Zgłaszam usterki</label>
+                        </div>
+
+                        <input type="hidden" name="hasFaults" value="false" />
+
+                        <div id="faultWrapper" class="mt-2 d-none">
+                            <label for="faults" class="form-label">Opis usterek:</label>
+                            <textarea name="faults" id="faults" class="form-control" rows="3" placeholder="Opisz usterki..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                @if (feedbackType == "Pickup")
+                {
+                    <div class="mb-3">
+                        <label class="form-label" for="pickupMileage">Przebieg (km)</label>
+                        <input type="number" class="form-control" id="pickupMileage" name="pickupMileage" min="0" value="@Model.Asset.Mileage" required />
+                        <small class="form-text text-muted">
+                            Dokładność wymagana ± 10 km
+                        </small>
+                    </div>
+                }
+
+                @if (feedbackType == "Return")
+                {
+                    <div class="mb-3">
+                        <label class="form-label" for="returnMileage">Przebieg przy zwrocie (km)</label>
+                        <input type="number" class="form-control" id="returnMileage" name="returnMileage" min="0" value="@Model.Asset.Mileage" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="fuelLevel">Poziom paliwa (%)</label>
+                        <input type="range" class="form-range" id="fuelLevel" name="fuelLevel" min="0" max="100" value="50" oninput="document.getElementById('fuelDisplay').innerText = this.value + '%'" />
+                        <div class="progress mt-2" style="height: 20px;">
+                            <div id="fuelProgress" class="progress-bar bg-success" role="progressbar" style="width:50%">
+                                50%
+                            </div>
+                        </div>
+                        <small id="fuelDisplay" class="form-text text-muted">50%</small>
+                    </div>
+                }
+                <button type="submit" class="btn btn-primary">Zapisz feedback</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const fuelSlider = document.getElementById('fuelLevel');
+    const fuelProgress = document.getElementById('fuelProgress');
+    const fuelDisplay = document.getElementById('fuelDisplay');
+
+    function toggleFaultArea(show){
+        const w = document.getElementById('faultWrapper');
+        const t = document.getElementById('faults');
+        w.classList.toggle('d-none', !show);
+        t.required = show;
+    }
+
+    fuelSlider.addEventListener('input', function() {
+        fuelProgress.style.width = this.value + "%";
+        fuelProgress.innerText = this.value + "%";
+
+        if (this.value < 25) fuelProgress.className = "progress-bar bg-danger";
+        else if (this.value < 60) fuelProgress.className = "progress-bar bg-warning";
+        else fuelProgress.className = "progress-bar bg-success";
+
+        fuelDisplay.innerText = this.value + "%";
+    });
+</script>

@@ -1,0 +1,112 @@
+﻿@model AssetVM
+<div class="card shadow border-0 mt-4">
+	<div class="card-header bg-secondary bg-gradient ml-0 py-3">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-white py-2">Dodaj Samochód</h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+		<form method="post" class="row" enctype="multipart/form-data">
+			<div class="border p-3 mt-4">
+				<div class="form-floating py-2 col-12">
+					<input asp-for="@Model.Asset.AssetTag" class="form-control border-0 shadow" />
+					<label asp-for="@Model.Asset.AssetTag" class="ms-2">Numer rejestracji</label>
+					<span asp-validation-for="@Model.Asset.AssetTag" class="text-danger"></span>
+				</div>
+				<div class="form-floating py-2 col-12">
+					<select asp-for="Asset.AssetType" class="form-select border-0 shadow">
+						<option value="Car">Samochód</option>
+						<option value="Lift">Podnośnik</option>
+					</select>
+					<label asp-for="Asset.AssetType" class="ms-2">Typ pojazdu</label>
+				</div>
+
+				<div class="form-floating py-2 col-12">
+					<input asp-for="@Model.Asset.Make" class="form-control border-0 shadow" />
+					<label asp-for="@Model.Asset.Make" class="ms-2">Marka</label>
+					<span asp-validation-for="@Model.Asset.Make" class="text-danger"></span>
+				</div>
+				<div class="form-floating py-2 col-12">
+					<input asp-for="@Model.Asset.Model" class="form-control border-0 shadow" />
+					<label asp-for="@Model.Asset.Model" class="ms-2">Model</label>
+					<span asp-validation-for="@Model.Asset.Model" class="text-danger"></span>
+				</div>
+				<div class="form-floating py-2 col-12">
+					<input asp-for="@Model.Asset.InspectionDate" class="form-control border-0 shadow" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+					<label asp-for="@Model.Asset.InspectionDate" class="ms-2">Przegląd</label>
+					<span asp-validation-for="@Model.Asset.InspectionDate" class="text-danger"></span>
+				</div>
+
+				<div class="form-floating py-2 col-12">
+					<input asp-for="@Model.Asset.ServiceDate" class="form-control border-0 shadow" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+					<label asp-for="@Model.Asset.ServiceDate" class="ms-2">Serwis</label>
+					<span asp-validation-for="@Model.Asset.ServiceDate" class="text-danger"></span>
+				</div>
+
+				<div class="form-check form-switch py-2 col-12">
+					<input asp-for="@Model.Asset.IsDamaged" class="form-check-input" type="checkbox" />
+					<label asp-for="@Model.Asset.IsDamaged" class="form-check-label">Czy samochód jest brudny?</label>
+				</div>
+				<div class="form-check form-switch py-2 col-12">
+					<input asp-for="@Model.Asset.HasTracking" class="form-check-input" type="checkbox" />
+					<label asp-for="@Model.Asset.HasTracking" class="form-check-label">Czy samochód posiada videotolling?</label>
+				</div>
+
+				<div class="form-floating py-2 col-12">
+					<input asp-for="Asset.Mileage" class="form-control border-0 shadow" min="0" />
+					<label asp-for="Asset.Mileage" class="ms-2">Przebieg (km)</label>
+					<span asp-validation-for="Asset.Mileage" class="text-danger"></span>
+				</div>
+
+				<div class="py-2 col-12" id="fuelSection">
+					<label class="form-label" asp-for="Asset.FuelLevel" id="fuelLabel">Paliwo (%)</label>
+					<input type="range" asp-for="Asset.FuelLevel" class="form-range" min="0" max="100" oninput="updateFuel(this.value)">
+					<div class="progress" style="height:20px;">
+						<div id="fuelBar" class="progress-bar bg-success" role="progressbar" style="width:50%">50%</div>
+					</div>
+					<span asp-validation-for="Asset.FuelLevel" class="text-danger"></span>
+				</div>
+
+
+				<div class="form-floating py-2 col-12">
+					<input type="file" name="file" class="form-control border-0 shadow" />
+					<label asp-for="@Model.Asset.ImageUrl" class="ms-2">Zdjęcie</label>
+				</div>
+
+				<div class="row pt-2">
+					<div class="col-6 col-md-3">
+						<button type="submit" class="btn btn-primary form-control">Dodaj</button>
+					</div>
+					<div class="col-6 col-md-3">
+						<a asp-area="Manager" asp-controller="Asset" asp-action="Index" class="btn btn-outline-primary border  form-control">Anuluj</a>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+@section Scripts{
+	@{
+		<partial name="_ValidationScriptsPartial"/>
+	}
+	<script>
+		function updateFuel(val){
+			const bar = document.getElementById('fuelBar');
+			bar.style.width = val + '%';
+			bar.innerText   = val + '%';
+
+			if (val < 25)      bar.className = 'progress-bar bg-danger';
+			else if (val < 60) bar.className = 'progress-bar bg-warning';
+			else               bar.className = 'progress-bar bg-success';
+		}
+
+		document.getElementById('Car_AssetType').addEventListener('change', function () {
+			const label = document.getElementById('fuelLabel');
+			label.innerText = this.value === 'Lift' ? 'Poziom naładowania (SoC %)' : 'Paliwo (%)';
+		});
+	</script>
+
+}

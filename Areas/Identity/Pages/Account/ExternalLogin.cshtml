@@ -1,0 +1,99 @@
+﻿@page
+@model ExternalLoginModel
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function toggleNewUserFields() {
+            var dropdown = document.getElementById("Input_SelectedUserId");
+            var formFields = document.getElementById("new-user-fields");
+            if (dropdown && formFields) {
+                formFields.style.display = dropdown.value === "" ? "block" : "none";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const dropdown = document.getElementById("Input_SelectedUserId");
+            if (dropdown) {
+                dropdown.addEventListener("change", toggleNewUserFields);
+                toggleNewUserFields(); // initial toggle
+            }
+        });
+    </script>
+}
+
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-4">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="py-2 text-white">Zarejestruj się</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="row pt-3">
+            <div class="col-md-12">
+                <form id="registerForm" class="row" asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                    <h3 class="border-bottom pb-3 mb-4 text-secondary text-center">
+                        Połącz konto z @Model.ProviderDisplayName
+                    </h3>
+                    <p id="external-login-description" class="text-info text-center">
+                        Pomyślnie uwierzytelniono za pomocą <strong>@Model.ProviderDisplayName</strong>.
+                        Wybierz użytkownika lub zarejestruj się jako nowy.
+                    </p>
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                    <label class="ms-2 text-muted">
+                        <strong>Wybierz użytkownika z listy ▼</strong> (rozwiń listę i wybierz swoją tożsamość)
+                    </label>
+                    <div class="form-floating mb-3 col-md-12">
+                        <select asp-for="Input.SelectedUserId" class="form-select" id="Input_SelectedUserId">
+                            @if (Model.Input.MatchingUsers != null && Model.Input.MatchingUsers.Any())
+                            {    
+                                @foreach (var user in Model.Input.MatchingUsers)
+                                {
+                                    <option value="@user.Id">@user.FirstName @user.LastName</option>
+                                }
+                            }
+                            <option value="" selected="@(string.IsNullOrEmpty(Model.Input.SelectedUserId))">-- Jestem nowym użytkownikiem --</option>
+						</select>
+						<label for="Input.SelectedUserId" class="ms-2 text-muted">Imię i Nazwisko użytkownika</label>
+                    </div>
+
+                    <div class="form-floating mb-3 col-md-12">
+                        <input asp-for="Input.Email" class="form-control" readonly />
+                        <label asp-for="Input.Email" class="ms-2 text-muted">Adres e-mail</label>
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+
+                    <div id="new-user-fields" style="display: none;">
+                        <div class="form-floating mb-3 col-md-12">
+                            <input asp-for="Input.FirstName" class="form-control" />
+                            <label asp-for="Input.FirstName" class="ms-2 text-muted">Imię</label>
+                            <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3 col-md-12">
+                            <input asp-for="Input.LastName" class="form-control" />
+                            <label asp-for="Input.LastName" class="ms-2 text-muted">Nazwisko</label>
+                            <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3 col-md-12">
+                            <input asp-for="Input.PhoneNumber" class="form-control" />
+                            <label asp-for="Input.PhoneNumber" class="ms-2 text-muted">Telefon</label>
+                            <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">
+                            Kontynuuj
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

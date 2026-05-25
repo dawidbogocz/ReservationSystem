@@ -1,0 +1,122 @@
+﻿@model IEnumerable<CarReservation.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "User List";
+}
+
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient py-3">
+        <h2 class="text-white py-2 text-center">Lista użytkowników</h2>
+        <div class="col-12 text-end mt-3">
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Dodaj użytkownika
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="table-responsive mt-3">
+            <table id="userTable" class="table table-bordered table-striped" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nazwa</th>
+                        <th>Imię</th>
+                        <th>Nazwisko</th>
+                        <th>Email</th>
+                        <th>Numer telefonu</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#userTable').DataTable({
+                "ajax": {
+                    "url": "/Admin/User/GetAll",
+                    "type": "GET",
+                    "datatype": "json",
+                    "dataSrc": "data"
+                },
+                "columns": [
+                    { "data": "id" },
+                    { "data": "username" },
+                    { "data": "firstName" },
+                    { "data": "lastName" },
+                    { "data": "email" },
+					{ "data": "phoneNumber" },
+                    {
+                        "data": "id",
+                        "render": function (data) {
+                            return `<a href="/Admin/User/Edit/${data}" class="btn btn-outline-primary mt-2 mx-2">
+                                        <i class="bi bi-pencil"></i> Edytuj
+                                    </a>
+                                    <button onclick="deleteUser('${data}')" class="btn btn-outline-danger mt-2 mx-2">
+                                        <i class="bi bi-trash3"></i> Usuń
+                                    </button>`;
+                        }
+                    }
+                ],
+                "language": {
+                    "lengthMenu": "Pokaż _MENU_ użytkowników",
+                    "zeroRecords": "Brak pasujących użytkowników",
+                    "info": "Pokazano _START_ do _END_ z _TOTAL_ użytkowników",
+                    "infoEmpty": "Brak dostępnych użytkowników",
+                    "search": "Szukaj:",
+                    "paginate": {
+                        "first": "Pierwsza",
+                        "last": "Ostatnia",
+                        "next": "Następna",
+                        "previous": "Poprzednia"
+                    },
+                },
+                "processing": true,
+                "serverSide": false,
+                "responsive": true,
+                "paging": true,
+                "searching": true,
+                "ordering": true,
+                "lengthMenu": [10, 15, 25, 50]
+            });
+        });
+
+
+        function deleteUser(id) {
+            Swal.fire({
+                title: 'Potwierdzenie usunięcia',
+                text: 'Czy na pewno chcesz usunąć tego użytkownika?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Tak, usuń',
+                cancelButtonText: 'Anuluj'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/Admin/User/Delete/${id}`,
+                        type: "DELETE",
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire('Sukces', response.message, 'success')
+                                .then(() => {
+                                    $('#userTable').DataTable().ajax.reload();
+                                });
+                            } else {
+                                Swal.fire('Błąd', response.message, 'error');
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Błąd', 'Wystąpił błąd podczas przetwarzania żądania.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+    </script>
+}
+

@@ -1,0 +1,297 @@
+﻿@model List<Reservation>
+
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <h2 class="text-white py-2 text-center">Lista Rezerwacji</h2>
+
+        @if (ViewBag.SelectedReservationId != null)
+        {
+            <div class="alert alert-info mb-0 text-center">
+                Wyświetlana jest tylko rezerwacja o ID <strong>@ViewBag.SelectedReservationId</strong>.
+            </div>
+        }
+
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="d-flex flex-wrap gap-2">
+                    <select id="statusFilter" class="form-select w-auto">
+                        <option value="">Status (wszyscy)</option>
+                        <option value="Oczekujace">Oczekujące</option>
+                        <option value="Zaakceptowane">Zaakceptowane</option>
+                        <option value="Odrzucone">Odrzucone</option>
+                        <option value="Anulowana">Anulowana</option>
+                    </select>
+
+                    <select id="carFilter" class="form-select w-auto">
+                        <option value="">Samochód (wszystkie)</option>
+                        @foreach (var plate in ViewBag.CarPlates as IEnumerable<string>)
+                        {
+                            <option value="@plate">@plate</option>
+                        }
+                    </select>
+
+                    <select id="userFilter" class="form-select w-auto">
+                        <option value="">Użytkownik (wszyscy)</option>
+                        @foreach (var user in ViewBag.Users as IEnumerable<string>)
+                        {
+                            <option value="@user">@user</option>
+                        }
+                    </select>
+
+                    <div class="d-flex align-items-center gap-1">
+                        <input type="date" id="dateFrom" class="form-control" />
+                        <span>–</span>
+                        <input type="date" id="dateTo" class="form-control" />
+                        <button id="dateApply" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-filter"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 text-end">
+                <button id="exportBtn" class="btn btn-success me-2">
+                    <i class="bi bi-file-earmark-excel"></i> Excel
+                </button>
+                <a asp-area="Manager" asp-controller="Reservation" asp-action="Upsert" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Dodaj Rezerwacje
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body p-4">
+        <div class="table-responsive mt-3">
+            <table id="reservationTable" class="table table-bordered table-striped" width="100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Numer rejestracji</th>
+                        <th>Data rezerwacji</th>
+                        <th>Data oddania</th>
+                        <th>Cel rezerwacji</th>
+                        <th>Użytkownik</th>
+                        <th>Status</th>
+                        <th>Powód anulowania</th>
+                        <th>Decyzja</th>
+                        <th>Data decyzji</th>
+                        <th>Akcje</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            const selectedReservationId = @Html.Raw(ViewBag.SelectedReservationId != null ? ViewBag.SelectedReservationId.ToString() : "null");
+
+            if (selectedReservationId !== null) {
+                $('#statusFilter, #carFilter, #userFilter, #dateFrom, #dateTo, #dateApply').prop('disabled', true);
+            }
+
+            const table = $('#reservationTable').DataTable({
+                ajax: {
+                    url: "/Manager/Reservation/GetAll",
+                    type: "GET",
+                    datatype: "json",
+                    data: function (d) {
+                        if (selectedReservationId !== null) {
+                            d.reservationId = selectedReservationId;
+                        }
+                    },
+                    dataSrc: "data"
+                },
+                columns: [
+                    { data: "id" },
+                    { data: "numberPlate" },
+                    { data: "pickupDate", render: dateRenderer },
+                    { data: "returnDate", render: dateRenderer },
+                    { data: "destination" },
+                    { data: "user" },
+                    {
+                        data: "approval",
+                        render: function (data, type, row) {
+                            if (type === 'display') return statusBadge(data);
+                            return data;
+                        }
+                    },
+                    { data: "note" },
+                    { data: "approvedBy", defaultContent: "-" },
+                    { data: "approvalDate", render: dateRenderer },
+                    { data: null, render: actionButtons, orderable: false, searchable: false }
+                ],
+                order: [[6, 'asc']],
+                language: {
+                    lengthMenu: "Pokaż _MENU_ rezerwacji",
+                    zeroRecords: "Brak pasujących rezerwacji",
+                    info: "Pokazano _START_ do _END_ z _TOTAL_ rezerwacji",
+                    infoEmpty: "Brak dostępnych rezerwacji",
+                    search: "Szukaj:",
+                    paginate: {
+                        first: "Pierwsza",
+                        last: "Ostatnia",
+                        next: "Następna",
+                        previous: "Poprzednia"
+                    }
+                },
+                responsive: true
+            });
+
+            $('#statusFilter').on('change', function () {
+                table.column(6).search(this.value).draw();
+            });
+
+            $('#carFilter').on('change', function () {
+                table.column(1).search(this.value).draw();
+            });
+
+            $('#userFilter').on('change', function () {
+                table.column(5).search(this.value).draw();
+            });
+
+            $('#exportBtn').on('click', function () {
+                const qs = $.param({
+                    status: $('#statusFilter').val(),
+                    car: $('#carFilter').val(),
+                    user: $('#userFilter').val(),
+                    dateFrom: $('#dateFrom').val(),
+                    dateTo: $('#dateTo').val(),
+                    reservationId: selectedReservationId
+                });
+
+                window.location = `/Manager/Reservation/ExportToExcel?${qs}`;
+            });
+
+            $.fn.dataTable.ext.search.push(function (settings, data) {
+                const fromVal = $('#dateFrom').val();
+                const toVal = $('#dateTo').val();
+
+                if (!fromVal && !toVal) return true;
+
+                const display = data[2];
+                if (!display) return false;
+
+                const m = display.match(/(\d{2})[./-](\d{2})[./-](\d{4})/);
+                if (!m) return false;
+
+                const rowDate = new Date(`${m[3]}-${m[2]}-${m[1]}T00:00:00`);
+
+                if (fromVal && rowDate < new Date(fromVal)) return false;
+                if (toVal && rowDate > new Date(toVal)) return false;
+
+                return true;
+            });
+
+            $('#dateApply').on('click', () => $('#reservationTable').DataTable().draw());
+            $('#dateFrom, #dateTo').on('change', () => $('#dateApply').trigger('click'));
+
+            function dateRenderer(data, type) {
+                if (!data) return "-";
+
+                const d = new Date(data);
+
+                return (type === 'sort')
+                    ? d.getTime()
+                    : new Intl.DateTimeFormat('pl-PL', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    }).format(d);
+            }
+
+            function statusBadge(data) {
+                switch (data) {
+                    case "Oczekujace": return "<span class='badge bg-warning'>Oczekujące</span>";
+                    case "Zaakceptowane": return "<span class='badge bg-success'>Zaakceptowane</span>";
+                    case "Odrzucone": return "<span class='badge bg-danger'>Odrzucone</span>";
+                    case "Anulowana": return "<span class='badge bg-secondary'>Anulowana</span>";
+                    default: return data;
+                }
+            }
+
+            function actionButtons(data, type, row) {
+                let html =
+                    `<div class="d-flex flex-wrap gap-1 justify-content-center">
+                        <a href="/Manager/Reservation/Upsert/${row.id}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Edytuj
+                        </a>
+                        <button onclick="deleteReservation(${row.id})" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash3"></i> Usuń
+                        </button>`;
+
+                if (row.approval === "Oczekujace") {
+                    html += `
+                        <button onclick="updateApproval(${row.id}, 'Zaakceptowane')" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-check-circle"></i> Zatwierdź
+                        </button>
+                        <button onclick="updateApproval(${row.id}, 'Odrzucone')" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-x-circle"></i> Odrzuć
+                        </button>`;
+                }
+
+                return html + "</div>";
+            }
+        });
+
+        function deleteReservation(id) {
+            Swal.fire({
+                title: 'Potwierdzenie usunięcia',
+                text: 'Czy na pewno chcesz usunąć tę rezerwację?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Tak, usuń',
+                cancelButtonText: 'Anuluj'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/Manager/Reservation/Delete/${id}`,
+                        type: "DELETE",
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success(data.message);
+                                $('#reservationTable').DataTable().ajax.reload();
+                            } else {
+                                toastr.error(data.message);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        function updateApproval(id, status) {
+            Swal.fire({
+                title: 'Potwierdzenie',
+                text: `Czy na pewno chcesz zmienić status na "${status}"?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Tak',
+                cancelButtonText: 'Anuluj'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/Manager/Reservation/UpdateApproval`,
+                        type: "POST",
+                        data: { id: id, status: status },
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success(data.message);
+                                $('#reservationTable').DataTable().ajax.reload();
+                            } else {
+                                toastr.error(data.message);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

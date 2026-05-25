@@ -1,0 +1,73 @@
+﻿@model IEnumerable<CarReservation.Models.Asset>
+
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient py-3">
+        <h2 class="text-white text-center">Zarezerwowane Samochody</h2>
+    </div>
+    <div class="card-body p-4">
+        <div class="table-responsive mt-3">
+            <table id="reservedCarsTable" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Numer rejestracyjny</th>
+                        <th>Użytkownik</th>
+                        <th>Telefon</th>
+                        <th>Data od</th>
+                        <th>Data do</th>
+                        <th>Status</th>
+                        <th>Cel Podróży</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var car in Model)
+                    {
+                        foreach (var reservation in car.Reservations.Where(r =>
+                        (r.Approval == Approval.Oczekujace || r.Approval == Approval.Zaakceptowane) && r.ReturnDate > ViewBag.StartDate))
+                        {
+                            <tr>
+                                <td>@car.AssetTag</td>
+                                <td>@reservation.User.FirstName @reservation.User.LastName</td>
+                                <td>@reservation.User.PhoneNumber</td>
+                                <td data-order="@reservation.PickupDate.ToString("yyyy-MM-dd HH:mm")">
+                                    @reservation.PickupDate.ToString("dd-MM-yyyy HH:mm")
+                                </td>
+                                <td data-order="@reservation.ReturnDate.ToString("yyyy-MM-dd HH:mm")">
+                                    @reservation.ReturnDate.ToString("dd-MM-yyyy HH:mm")
+                                </td>
+                                <td>@reservation.Approval</td>
+                                <td>@reservation.Destination</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#reservedCarsTable').DataTable({
+                language: {
+                    lengthMenu: "Pokaż _MENU_ rezerwacji",
+                    zeroRecords: "Brak pasujących rezerwacji",
+                    info: "Pokazano _START_ do _END_ z _TOTAL_ rezerwacji",
+                    infoEmpty: "Brak dostępnych rezerwacji",
+                    search: "Szukaj:",
+                    paginate: {
+                        first: "Pierwsza",
+                        last: "Ostatnia",
+                        next: "Następna",
+                        previous: "Poprzednia"
+                    }
+                },
+                responsive: true,
+                ordering: true,
+                order: [[3, 'asc']], // sort by start date
+                lengthMenu: [5, 10, 25, 50],
+                pageLength: 10
+            });
+        });
+    </script>
+}

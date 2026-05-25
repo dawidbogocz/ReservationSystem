@@ -1,0 +1,57 @@
+﻿@page
+@model LoginModel
+
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-4">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="py-2 text-white">Logowanie</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        @if (Model.IsDevLoginEnabled)
+        {
+            <div class="alert alert-warning">
+                Logowanie developerskie jest aktywne tylko dla środowiska Development. Użyj e-maila istniejącego użytkownika i hasła z konfiguracji <code>DevLogin:Password</code>.
+            </div>
+
+            <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
+                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.Email" class="form-label">Email użytkownika</label>
+                    <input asp-for="Input.Email" class="form-control" autocomplete="username" />
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.Password" class="form-label">Hasło developerskie</label>
+                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" />
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input asp-for="Input.RememberMe" class="form-check-input" />
+                    <label asp-for="Input.RememberMe" class="form-check-label">Zapamiętaj mnie</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Zaloguj developersko</button>
+                <a class="btn btn-outline-secondary" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl">Logowanie SAML</a>
+            </form>
+        }
+        else
+        {
+            <div class="text-center">
+                <p class="mb-3">Ta aplikacja używa wyłącznie logowania SAML.</p>
+                <a class="btn btn-primary" asp-page="./ExternalLogin" asp-route-returnUrl="@Request.Query["returnUrl"]">
+                    Przejdź do logowania SAML
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

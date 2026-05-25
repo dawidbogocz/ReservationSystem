@@ -1,0 +1,179 @@
+﻿@{
+    ViewData["Title"] = "Historia feedbacków";
+}
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <h2 class="text-white py-2 text-center">Historia feedbacków</h2>
+
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="d-flex flex-wrap gap-2">
+                    <select id="typeFilter" class="form-select w-auto">
+                        <option value="">Typ (wszystkie)</option>
+                        <option value="Pickup">Odbiór</option>
+                        <option value="Return">Zwrot</option>
+                    </select>
+
+                    <select id="statusFilter" class="form-select w-auto">
+                        <option value="">Status (wszystkie)</option>
+                        @foreach (var status in ViewBag.Statuses as IEnumerable<dynamic>)
+                        {
+                            <option value="@status.Value">@status.Text</option>
+                        }
+                    </select>
+
+                    <select id="carFilter" class="form-select w-auto">
+                        <option value="">Samochód (wszystkie)</option>
+                        @foreach (var plate in ViewBag.CarPlates as IEnumerable<string>)
+                        {
+                            <option value="@plate">@plate</option>
+                        }
+                    </select>
+
+                    <select id="userFilter" class="form-select w-auto">
+                        <option value="">Użytkownik (wszyscy)</option>
+                        @foreach (var user in ViewBag.Users as IEnumerable<string>)
+                        {
+                            <option value="@user">@user</option>
+                        }
+                    </select>
+
+                    <div class="d-flex align-items-center gap-1">
+                        <input type="date" id="dateFrom" class="form-control" />
+                        <span>–</span>
+                        <input type="date" id="dateTo" class="form-control" />
+                        <button id="dateApply" class="btn btn-outline-secondary btn-sm" title="Zastosuj filtr daty">
+                            <i class="bi bi-filter"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 text-end">
+                <button id="exportBtn" class="btn btn-success">
+                    <i class="bi bi-file-earmark-excel"></i> Excel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body p-4">
+        <div class="table-responsive mt-3">
+            <table id="feedbackTable" class="table table-bordered table-striped" width="100%">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Typ</th>
+                        <th>Status</th>
+                        <th>Samochód</th>
+                        <th>Użytkownik</th>
+                        <th>Rezerwacja</th>
+                        <th>Przebieg</th>
+                        <th>Paliwo</th>
+                        <th>Czystość</th>
+                        <th>Usterki</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            const table = $('#feedbackTable').DataTable({
+                ajax: { url: '/Manager/Feedback/GetAll', type: 'GET', dataSrc: 'data' },
+                columns: [
+                    { data: 'when', render: dateRenderer },
+                    {
+                        data: 'kind',
+                        render: function (k, type) {
+                            if (type === 'display') {
+                                return k === 'Pickup' ? 'Odbiór' : 'Zwrot';
+                            }
+                            return k;
+                        }
+                    },
+                    {
+                        data: 'status',
+                        render: function (s, type) {
+                            if (type === 'display') {
+                                let text = s === 'Provided' ? 'Dostarczona' : s === 'Expired' ? 'Wygasła' : 'Oczekująca';
+                                let className = s === 'Expired' ? 'text-warning' : s === 'Provided' ? 'text-success' : 'text-muted';
+                                return `<span class="${className}">${text}</span>`;
+                            }
+                            return s;
+                        }
+                    },
+                    { data: 'car' },
+                    { data: 'user' },
+                    { data: 'reservationId' },
+                    { data: 'mileage', render: d => d != null ? (Number(d).toLocaleString('pl-PL') + ' km') : '-' },
+                    { data: 'fuel', render: d => d != null ? (d + ' %') : '-' },
+                    { data: 'dirty', render: d => d ? 'Brudny' : 'Czysty' },
+                    { data: 'faults' }
+                ],
+                order: [[0, 'desc']],
+                responsive: true,
+                language: {
+                    lengthMenu: "Pokaż _MENU_ pozycji",
+                    zeroRecords: "Brak pasujących wpisów",
+                    info: "Pokazano _START_ do _END_ z _TOTAL_ wpisów",
+                    infoEmpty: "Brak danych",
+                    search: "Szukaj:",
+                    paginate: { first: "Pierwsza", last: "Ostatnia", next: "Następna", previous: "Poprzednia" }
+                }
+            });
+
+            $('#typeFilter').on('change', function () { table.column(1).search(this.value).draw(); });
+            $('#statusFilter').on('change', function () { table.column(2).search(this.value).draw(); });
+            $('#carFilter').on('change', function () { table.column(3).search(this.value).draw(); });
+            $('#userFilter').on('change', function () { table.column(4).search(this.value).draw(); });
+
+            $('#exportBtn').on('click', function () {
+                const qs = $.param({
+                    kind: $('#typeFilter').val(),
+                    status: $('#statusFilter').val(),
+                    car: $('#carFilter').val(),
+                    user: $('#userFilter').val(),
+                    dateFrom: $('#dateFrom').val(),
+                    dateTo: $('#dateTo').val()
+                });
+                window.location = `/Manager/Feedback/ExportToExcel?${qs}`;
+            });
+
+            $.fn.dataTable.ext.search.push(function (settings, data) {
+                const fromVal = $('#dateFrom').val();
+                const toVal = $('#dateTo').val();
+                if (!fromVal && !toVal) return true;
+
+                const display = data[0];
+                if (!display) return false;
+
+                const m = display.match(/(\d{2})[./-](\d{2})[./-](\d{4})/);
+                if (!m) return false;
+
+                const rowDate = new Date(`${m[3]}-${m[2]}-${m[1]}T00:00:00`);
+                if (fromVal && rowDate < new Date(fromVal)) return false;
+                if (toVal && rowDate > new Date(toVal)) return false;
+                return true;
+            });
+
+            $('#dateApply').on('click', () => table.draw());
+            $('#dateFrom, #dateTo').on('change', () => $('#dateApply').trigger('click'));
+
+            function dateRenderer(data, type) {
+                if (!data) return "-";
+                const d = new Date(data);
+                return (type === 'sort')
+                    ? d.getTime()
+                    : new Intl.DateTimeFormat('pl-PL', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit', hour12: false
+                    }).format(d);
+            }
+        });
+    </script>
+}

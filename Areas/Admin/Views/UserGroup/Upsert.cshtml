@@ -1,0 +1,133 @@
+﻿@model CarReservation.Models.ViewModels.UserGroupVM
+
+<form method="post">
+    @Html.AntiForgeryToken()
+    <input asp-for="UserGroup.Id" hidden />
+
+    <div class="card shadow border-0 mt-4">
+        <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h2 class="text-white py-2">
+                        @(Model.UserGroup.Id == 0 ? "Dodaj grupę użytkowników" : "Edytuj grupę użytkowników")
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="border p-3">
+                <div class="mb-3">
+                    <label asp-for="UserGroup.Name" class="form-label">Nazwa grupy</label>
+                    <input asp-for="UserGroup.Name" class="form-control" />
+                    <span asp-validation-for="UserGroup.Name" class="text-danger"></span>
+                </div>
+
+                <hr />
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Managerowie grupy</h5>
+                        <p class="text-muted">Zaznacz osoby, które mają otrzymywać powiadomienia dla tej grupy.</p>
+
+                        @if (Model.ManagerList.Any())
+                        {
+                            <div class="border rounded p-3" style="max-height: 350px; overflow-y: auto;">
+                                @foreach (var manager in Model.ManagerList)
+                                {
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               name="SelectedManagerIds"
+                                               value="@manager.Value"
+                                               id="manager_@manager.Value"
+                                               checked="@manager.Selected" />
+
+                                        <label class="form-check-label" for="manager_@manager.Value">
+                                            @manager.Text
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning">
+                                Brak użytkowników z rolą <strong>Manager</strong>.
+                                Najpierw przypisz komuś rolę Manager w panelu użytkowników.
+                            </div>
+                        }
+                    </div>
+
+                    <div class="col-md-6">
+                        <h5>Pracownicy w grupie</h5>
+                        <p class="text-muted">Zaznacz użytkowników, którzy mają należeć do tej grupy.</p>
+
+                        @if (Model.EmployeeList.Any())
+                        {
+                            <div class="mb-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectAllEmployees(true)">
+                                    Zaznacz wszystkich
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectAllEmployees(false)">
+                                    Odznacz wszystkich
+                                </button>
+                            </div>
+
+                            <div class="border rounded p-3" style="max-height: 350px; overflow-y: auto;">
+                                @foreach (var employee in Model.EmployeeList)
+                                {
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input employee-checkbox"
+                                               type="checkbox"
+                                               name="SelectedEmployeeIds"
+                                               value="@employee.Value"
+                                               id="employee_@employee.Value"
+                                               checked="@employee.Selected" />
+
+                                        <label class="form-check-label" for="employee_@employee.Value">
+                                            @employee.Text
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning">
+                                Brak użytkowników do przypisania.
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-6 col-md-3">
+                        <button type="submit" class="btn btn-primary form-control">
+                            Zapisz
+                        </button>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a asp-area="Admin" asp-controller="UserGroup" asp-action="Index" class="btn btn-secondary form-control">
+                            Wróć
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function selectAllEmployees(value) {
+            document.querySelectorAll('.employee-checkbox').forEach(function (checkbox) {
+                checkbox.checked = value;
+            });
+        }
+    </script>
+}
