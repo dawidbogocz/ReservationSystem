@@ -1,6 +1,6 @@
-﻿using CarReservation.DataAccess.Repository.IRepository;
-using CarReservation.Models;
-using CarReservation.Models.ViewModels;
+﻿using ReservationApp.DataAccess.Repository.IRepository;
+using ReservationApp.Models;
+using ReservationApp.Models.ViewModels;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
-namespace CarReservation.Areas.Manager.Controllers
+namespace ReservationApp.Areas.Manager.Controllers
 {
     /// <summary>
     /// Provides reservation management functionality for managers and administrators,

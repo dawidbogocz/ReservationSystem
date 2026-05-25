@@ -1,11 +1,11 @@
-﻿using CarReservation.DataAccess.Repository.IRepository;
-using CarReservation.Models;
-using CarReservation.Models.ViewModels;
+﻿using ReservationApp.DataAccess.Repository.IRepository;
+using ReservationApp.Models;
+using ReservationApp.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace CarReservation.Areas.Manager.Controllers
+namespace ReservationApp.Areas.Manager.Controllers
 {
     /// <summary>
     /// Manages fault-related operations within the Manager area.

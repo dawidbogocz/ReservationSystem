@@ -1,4 +1,4 @@
-using CarReservation.Models;
+using ReservationApp.Models;
 ﻿#nullable disable
 
 using System.ComponentModel.DataAnnotations;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace CarReservation.Areas.Identity.Pages.Account
+namespace ReservationApp.Areas.Identity.Pages.Account
 {
     public class LoginModel : PageModel
     {

@@ -1,4 +1,4 @@
-using CarReservation.Models;
+using ReservationApp.Models;
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
@@ -6,7 +6,7 @@ using CarReservation.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace CarReservation.Areas.Identity.Pages.Account
+namespace ReservationApp.Areas.Identity.Pages.Account
 {
     /// <summary>
     ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used

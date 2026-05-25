@@ -1,13 +1,13 @@
-﻿using CarReservation.DataAccess.Repository.IRepository;
-using CarReservation.Models;
-using CarReservation.Models.ViewModels;
+﻿using ReservationApp.DataAccess.Repository.IRepository;
+using ReservationApp.Models;
+using ReservationApp.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
-namespace CarReservation.Areas.Admin.Controllers
+namespace ReservationApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = "Admin")]

@@ -1,4 +1,4 @@
-﻿@model CarReservation.Models.Reservation
+﻿@model ReservationApp.Models.Reservation
 @{
     string feedbackType = ViewBag.FeedbackType as string ?? "Pickup";
     string formAction = feedbackType == "Pickup" ? "PickupFeedback" : "ReturnFeedback";

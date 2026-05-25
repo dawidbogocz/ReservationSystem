@@ -1,16 +1,16 @@
 ﻿using System.Diagnostics;
 using System.Security.Claims;
-using CarReservation.DataAccess.Repository.IRepository;
-using CarReservation.DataAccess.Services;
-using CarReservation.Models;
-using CarReservation.Models.ViewModels;
+using ReservationApp.DataAccess.Repository.IRepository;
+using ReservationApp.DataAccess.Services;
+using ReservationApp.Models;
+using ReservationApp.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
-namespace CarReservation.Areas.Employee.Controllers
+namespace ReservationApp.Areas.Employee.Controllers
 {
     /// <summary>
     /// Manages operations for employee users, including viewing available vehicles,

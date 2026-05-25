@@ -1,11 +1,11 @@
-﻿using CarReservation.DataAccess.Repository.IRepository;
-using CarReservation.Models;
+﻿using ReservationApp.DataAccess.Repository.IRepository;
+using ReservationApp.Models;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace CarReservation.Areas.Manager.Controllers
+namespace ReservationApp.Areas.Manager.Controllers
 {
     [Area("Manager")]
     [Authorize(Policy = "AdminManager")]
