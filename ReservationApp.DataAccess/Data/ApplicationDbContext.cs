@@ -86,15 +86,15 @@ namespace ReservationApp.DataAccess.Data
 
             // Seed initial data for Reservation entities.
             modelBuilder.Entity<Reservation>().HasData(
-                new Reservation { Id = 1, AssetTag = "ABC123", UserId = "1", PickupDate = new System.DateTime(2022, 1, 1), ReturnDate = new System.DateTime(2022, 1, 2), Destination = "Wadowice", Approval = Approval.Oczekujace },
-                new Reservation { Id = 2, AssetTag = "DEF456", UserId = "2", PickupDate = new System.DateTime(2022, 1, 3), ReturnDate = new System.DateTime(2022, 1, 4), Destination = "Kraków", Approval = Approval.Zaakceptowane },
-                new Reservation { Id = 3, AssetTag = "ABC123", UserId = "3", PickupDate = new System.DateTime(2022, 1, 5), ReturnDate = new System.DateTime(2022, 1, 6), Destination = "Warszawa", Approval = Approval.Odrzucone }
+                new Reservation { Id = 1, AssetTag = "ABC123", UserId = "1", PickupDate = new System.DateTime(2022, 1, 1), ReturnDate = new System.DateTime(2022, 1, 2), Destination = "Wadowice", Approval = Approval.Pending },
+                new Reservation { Id = 2, AssetTag = "DEF456", UserId = "2", PickupDate = new System.DateTime(2022, 1, 3), ReturnDate = new System.DateTime(2022, 1, 4), Destination = "Krakow", Approval = Approval.Accepted },
+                new Reservation { Id = 3, AssetTag = "ABC123", UserId = "3", PickupDate = new System.DateTime(2022, 1, 5), ReturnDate = new System.DateTime(2022, 1, 6), Destination = "Warsaw", Approval = Approval.Rejected }
             );
 
             // Seed initial data for Fault entities.
             modelBuilder.Entity<Fault>().HasData(
-                new Fault { Id = 1, Description = "Awaria1", AssetTag = "ABC123", UserId = "1" },
-                new Fault { Id = 2, Description = "Awaria2", AssetTag = "DEF456", UserId = "2" }
+                new Fault { Id = 1, Description = "Fault1", AssetTag = "ABC123", UserId = "1" },
+                new Fault { Id = 2, Description = "Fault2", AssetTag = "DEF456", UserId = "2" }
             );
 
             modelBuilder.Entity<ApplicationUser>()
@@ -125,7 +125,7 @@ namespace ReservationApp.DataAccess.Data
             modelBuilder.Entity<ApplicationUser>().HasData(
                 new ApplicationUser { Id = "1", FirstName = "Jan", LastName = "Kowalski" },
                 new ApplicationUser { Id = "2", FirstName = "Anna", LastName = "Nowak" },
-                new ApplicationUser { Id = "3", FirstName = "Piotr", LastName = "Wiśniewski" }
+                new ApplicationUser { Id = "3", FirstName = "Piotr", LastName = "Wisniewski" }
             );
 
             modelBuilder.Entity<FeedbackLog>()

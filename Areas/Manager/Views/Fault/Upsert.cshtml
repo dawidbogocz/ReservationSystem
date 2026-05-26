@@ -5,7 +5,7 @@
         <div class="row">
             <div class="col-12 text-center">
                 <h2 class="text-white py-2">
-                    @(Model.Fault.Id != 0 ? "Edytuj" : "Dodaj") Usterkę
+                    @(Model.Fault.Id != 0 ? "Edit" : "Add") Fault
                 </h2>
             </div>
         </div>
@@ -19,32 +19,32 @@
 
                 <div class="form-floating py-2 col-12">
                     <select asp-for="Fault.AssetTag" asp-items="@Model.AssetList" class="form-select border-0 shadow">
-                        <option disabled selected>--Wybierz Samochód--</option>
+                        <option disabled selected>--Select Asset--</option>
                     </select>
-                    <label class="ms-2">Numer rejestracji</label>
+                    <label class="ms-2">Registration Number</label>
                 </div>
 
                 <div class="form-floating py-2 col-12">
                     <select asp-for="Fault.UserId" asp-items="@Model.UserList" class="form-select border-0 shadow">
-                        <option disabled selected>--Wybierz użytkownika--</option>
+                        <option disabled selected>--Select user--</option>
                     </select>
-                    <label class="ms-2">Zgłoszone przez</label>
+                    <label class="ms-2">Reported by</label>
                 </div>
 
                 <div class="form-floating py-2 col-12">
                     <input asp-for="Fault.Description" class="form-control border-0 shadow" />
-                    <label class="ms-2">Opis</label>
+                    <label class="ms-2">Description</label>
                 </div>
 
                 <div class="form-check py-2 col-12">
                     <input asp-for="Fault.IsFixed" class="form-check-input" id="isFixedCheckbox" />
-                    <label class="form-check-label ms-2">Czy naprawiono?</label>
+                    <label class="form-check-label ms-2">Is it fixed?</label>
                 </div>
 
                 <div class="form-check py-2 col-12">
                     <input asp-for="Fault.IsDrivable" class="form-check-input" />
                     <label class="form-check-label ms-2">
-                        Można użytkować samochód mimo usterki
+                        Vehicle is usable despite the fault
                     </label>
                 </div>
 
@@ -52,14 +52,14 @@
                     <textarea asp-for="Fault.DrivableComment"
                               class="form-control border-0 shadow"
                               style="height: 80px;"></textarea>
-                    <label class="ms-2">Komentarz administratora</label>
+                    <label class="ms-2">Admin comment</label>
                 </div>
 
                 <div class="form-floating py-2 col-12">
                     <textarea asp-for="Fault.FixDescription"
                               class="form-control border-0 shadow"
                               style="height: 100px;"></textarea>
-                    <label class="ms-2">Opis naprawy</label>
+                    <label class="ms-2">Fix description</label>
                 </div>
 
                 @if (Model.Fault.Id != 0)
@@ -67,7 +67,7 @@
                     <div class="form-floating py-2 col-12">
                         <input value="@Model.Fault.DateReported.ToString("yyyy-MM-dd HH:mm")"
                                class="form-control border-0 shadow" readonly />
-                        <label class="ms-2">Data zgłoszenia</label>
+                        <label class="ms-2">Date reported</label>
                     </div>
                 }
 
@@ -75,19 +75,19 @@
                     <input asp-for="Fault.FixDate"
                            type="date"
                            class="form-control border-0 shadow" />
-                    <label class="ms-2">Data naprawy</label>
+                    <label class="ms-2">Fix date</label>
                 </div>
 
                 <div class="row pt-2">
                     <div class="col-6 col-md-3">
                         <button type="submit" class="btn btn-primary form-control">
-                            @(Model.Fault.Id != 0 ? "Edytuj" : "Dodaj")
+                            @(Model.Fault.Id != 0 ? "Edit" : "Add")
                         </button>
                     </div>
                     <div class="col-6 col-md-3">
                         <a asp-area="Manager" asp-controller="Fault" asp-action="Index"
                            class="btn btn-outline-primary border form-control">
-                            Anuluj
+                            Cancel
                         </a>
                     </div>
                 </div>

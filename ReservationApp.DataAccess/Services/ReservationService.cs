@@ -38,7 +38,7 @@ namespace ReservationApp.DataAccess.Services
             var reminderWindowHours = _config.GetValue<int>("ReminderSettings:WindowHours", 24);
 
             var reservations = await unitOfWork.Reservation.GetAllAsync(
-                r => r.Approval == Approval.Zaakceptowane
+                r => r.Approval == Approval.Accepted
                      && !r.EmailReminderSent
                      && r.PickupDate > now
                      && r.PickupDate <= now.AddHours(reminderWindowHours),
@@ -59,11 +59,11 @@ namespace ReservationApp.DataAccess.Services
                     if (claimedRows == 0)
                         continue;
 
-                    var words = GetVehicleWord(reservation.Asset.AssetType);
+                    var vehicleName = GetVehicleName(reservation.Asset.AssetType);
 
-                    string subject = "Przypomnienie o rezerwacji";
-                    string body = $"Przypominamy, że masz rezerwację {words.dopełniacz} {reservation.AssetTag} " +
-                                  $"w dniu {reservation.PickupDate:dd-MM-yyyy HH:mm}.";
+                    string subject = "Reservation Reminder";
+                    string body = $"This is a reminder that you have a reservation for {vehicleName} {reservation.AssetTag} " +
+                                  $"on {reservation.PickupDate:dd-MM-yyyy HH:mm}.";
 
                     await emailSender.SendEmailAsync(reservation.User.Email, subject, body);
                 }
@@ -92,7 +92,7 @@ namespace ReservationApp.DataAccess.Services
 
             // Only fetch reservations within the relevant date window
             var relevantReservations = await unitOfWork.Reservation.GetAllAsync(
-                r => r.Approval == Approval.Zaakceptowane
+                r => r.Approval == Approval.Accepted
                      && r.PickupDate >= expirationDate
                      && (r.PickupDate <= oneDayFromNow || r.ReturnDate >= oneDayAgo || r.PickupFeedbackDate == null),
                 includeProperties: "Asset,User");
@@ -198,7 +198,7 @@ namespace ReservationApp.DataAccess.Services
                         await SendExpiredFeedbackAlertAsync(
                             departmentNotifications,
                             reservation,
-                            "odbiorze");
+                            "pickup");
                     }
 
                     if (returnExpiredNow)
@@ -206,7 +206,7 @@ namespace ReservationApp.DataAccess.Services
                         await SendExpiredFeedbackAlertAsync(
                             departmentNotifications,
                             reservation,
-                            "zwrocie");
+                            "return");
                     }
                 }
                 catch (Exception ex)
@@ -226,17 +226,17 @@ namespace ReservationApp.DataAccess.Services
             Reservation reservation,
             string feedbackType)
         {
-            string subject = $"Brak feedbacku po {feedbackType} pojazdu";
+            string subject = $"Missing feedback after {feedbackType}";
 
             string body =
-                $"Dzień dobry,<br/><br/>" +
-                $"Użytkownik <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> " +
-                $"nie uzupełnił feedbacku po {feedbackType} pojazdu.<br/><br/>" +
+                $"Hello,<br/><br/>" +
+                $"User <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> " +
+                $"did not complete the feedback after {feedbackType}.<br/><br/>" +
                 "<ul>" +
-                $"<li><strong>ID rezerwacji:</strong> {reservation.Id}</li>" +
-                $"<li><strong>Pojazd:</strong> {reservation.AssetTag}</li>" +
-                $"<li><strong>Od:</strong> {reservation.PickupDate:dd-MM-yyyy HH:mm}</li>" +
-                $"<li><strong>Do:</strong> {reservation.ReturnDate:dd-MM-yyyy HH:mm}</li>" +
+                $"<li><strong>Reservation ID:</strong> {reservation.Id}</li>" +
+                $"<li><strong>Asset:</strong> {reservation.AssetTag}</li>" +
+                $"<li><strong>From:</strong> {reservation.PickupDate:dd-MM-yyyy HH:mm}</li>" +
+                $"<li><strong>To:</strong> {reservation.ReturnDate:dd-MM-yyyy HH:mm}</li>" +
                 "</ul>";
 
             await departmentNotifications.SendToGroupManagersAndAdminsAsync(
@@ -245,11 +245,11 @@ namespace ReservationApp.DataAccess.Services
                 body);
         }
 
-        private (string mianownik, string dopełniacz, string narzędnik) GetVehicleWord(AssetType type)
+        private string GetVehicleName(AssetType type)
         {
             return type == AssetType.Lift
-                ? ("podnośnik", "podnośnika", "podnośnikiem")
-                : ("samochód", "samochodu", "samochodem");
+                ? "lift"
+                : "asset";
         }
     }
 }

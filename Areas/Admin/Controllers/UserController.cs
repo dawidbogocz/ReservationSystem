@@ -156,7 +156,7 @@ namespace ReservationApp.Areas.Admin.Controllers
 
                 if (emailExists)
                 {
-                    ModelState.AddModelError("Email", "Ten adres e-mail jest już używany przez innego użytkownika.");
+                    ModelState.AddModelError("Email", "This email address is already used by another user.");
                     await PopulateListsAsync(role, user.UserGroupId);
                     return View(user);
                 }
@@ -184,7 +184,7 @@ namespace ReservationApp.Areas.Admin.Controllers
 
                 await _userManager.UpdateSecurityStampAsync(existingUser);
 
-                TempData["success"] = "Użytkownik został zapisany pomyślnie.";
+                TempData["success"] = "User saved successfully.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)

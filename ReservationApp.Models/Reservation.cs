@@ -12,22 +12,22 @@ namespace ReservationApp.Models
         /// <summary>
         /// The reservation is pending approval.
         /// </summary>
-        Oczekujace,     // Pending
+        Pending,     // Pending
 
         /// <summary>
         /// The reservation has been accepted.
         /// </summary>
-        Zaakceptowane,  // Accepted
+        Accepted,  // Accepted
 
         /// <summary>
         /// The reservation has been rejected.
         /// </summary>
-        Odrzucone,       // Rejected
+        Rejected,       // Rejected
 
         /// <summary>
         /// The reservation has been canceled.
         /// </summary>
-        Anulowana       // Canceled
+        Cancelled       // Canceled
     }
 
     /// <summary>
@@ -70,21 +70,21 @@ namespace ReservationApp.Models
         /// <summary>
         /// Gets or sets the pickup date for the reservation.
         /// </summary>
-        [Required(ErrorMessage = "Data odebrania jest wymagana")]
+        [Required(ErrorMessage = "Pickup date is required")]
         public DateTime PickupDate { get; set; } = DateTime.Now;
 
         /// <summary>
         /// Gets or sets the return date for the reservation.
         /// </summary>
-        [Required(ErrorMessage = "Data oddania jest wymagana")]
+        [Required(ErrorMessage = "Return date is required")]
         public DateTime ReturnDate { get; set; } = DateTime.Now;
 
         /// <summary>
         /// Gets or sets the destination for the reservation.
         /// </summary>
-        [Required(ErrorMessage = "Cel podrózy jest wymagany")]
+        [Required(ErrorMessage = "Destination is required")]
         [MaxLength(50)]
-        [MinLength(2, ErrorMessage = "Cel wypożyczenia musi mieć przynajmniej {1} znaki")]
+        [MinLength(2, ErrorMessage = "Destination must be at least {1} characters")]
         public string Destination { get; set; }
 
         /// <summary>
@@ -96,8 +96,8 @@ namespace ReservationApp.Models
         /// <summary>
         /// Gets or sets a value indicating whether the user has accepted the terms and conditions.
         /// </summary>
-        [Display(Name = "Przeczytałem i akceptuję regulamin")]
-        [Required(ErrorMessage = "Musisz zaakceptować regulamin przed zarezerwowaniem samochodu.")]
+        [Display(Name = "I have read and accept the terms and conditions")]
+        [Required(ErrorMessage = "You must accept the terms before reserving an asset.")]
         public bool AcceptStatute { get; set; }
 
         /// <summary>

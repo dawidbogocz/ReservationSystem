@@ -42,7 +42,7 @@ namespace ReservationApp.Areas.Manager.Controllers
                     .ToList();
 
                 ViewBag.Statuses = Enum.GetNames(typeof(FeedbackStatus))
-                    .Select(s => new { Value = s, Text = s == "Provided" ? "Dostarczona" : s == "Expired" ? "Wygasła" : "Oczekująca" })
+                    .Select(s => new { Value = s, Text = s == "Provided" ? "Provided" : s == "Expired" ? "Expired" : "Pending" })
                     .ToList();
 
                 return View();
@@ -78,7 +78,7 @@ namespace ReservationApp.Areas.Manager.Controllers
                         mileage = f.Mileage,
                         fuel = f.FuelLevel,
                         dirty = f.IsCarDirty ?? false,
-                        faults = f.HasFaults == true ? (string.IsNullOrWhiteSpace(f.Faults) ? "(brak)" : f.Faults) : "-"
+                        faults = f.HasFaults == true ? (string.IsNullOrWhiteSpace(f.Faults) ? "(none)" : f.Faults) : "-"
                     });
 
                 return Json(new { data });
@@ -125,17 +125,17 @@ namespace ReservationApp.Areas.Manager.Controllers
 
                 var tableData = rows.Select(f => new
                 {
-                    Data = f.CreatedAt,
-                    Typ = f.Kind.ToString(),
-                    Status = f.Status == FeedbackStatus.Provided ? "Dostarczona" :
-                             f.Status == FeedbackStatus.Expired ? "Wygasła" : "Oczekująca",
-                    Samochód = f.AssetTag,
-                    Użytkownik = $"{f.User.FirstName} {f.User.LastName}",
-                    Rezerwacja = f.ReservationId,
-                    Przebieg_km = f.Mileage,
-                    Paliwo_pct = f.FuelLevel,
-                    Czystość = (f.IsCarDirty ?? false) ? "Brudny" : "Czysty",
-                    Usterki = f.HasFaults == true ? (string.IsNullOrWhiteSpace(f.Faults) ? "(brak)" : f.Faults) : "-"
+                    Date = f.CreatedAt,
+                    Type = f.Kind.ToString(),
+                    Status = f.Status == FeedbackStatus.Provided ? "Provided" :
+                             f.Status == FeedbackStatus.Expired ? "Expired" : "Pending",
+                    Car = f.AssetTag,
+                    User = $"{f.User.FirstName} {f.User.LastName}",
+                    Reservation = f.ReservationId,
+                    Mileage_km = f.Mileage,
+                    Fuel_pct = f.FuelLevel,
+                    Cleanliness = (f.IsCarDirty ?? false) ? "Dirty" : "Clean",
+                    Faults = f.HasFaults == true ? (string.IsNullOrWhiteSpace(f.Faults) ? "(none)" : f.Faults) : "-"
                 });
 
                 ws.Cell(1, 1).InsertTable(tableData);

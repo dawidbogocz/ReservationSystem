@@ -26,17 +26,17 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="Employee" asp-controller="Home" asp-action="MyReservations">Moje rezerwacje</a>
+                            <a class="nav-link text-dark" asp-area="Employee" asp-controller="Home" asp-action="MyReservations">My reservations</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="Employee" asp-controller="Home" asp-action="Reserved">Wszystkie rezerwacje</a>
+                            <a class="nav-link text-dark" asp-area="Employee" asp-controller="Home" asp-action="Reserved">All reservations</a>
                         </li>
 
                         @if (User.IsInRole(SD.Role_Manager))
                         {
                             <li class="nav-item dropdown">
                                 <a class="nav-link text-dark dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Zarządzanie
+                                    Management
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li class="nav-item">
@@ -52,7 +52,7 @@
                                     </li>
                                     <li><hr class="dropdown-divider" /></li>
                                     <li class="nav-item">
-                                        <a class="dropdown-item" asp-area="Manager" asp-controller="Feedback" asp-action="Index">Historia feedbacków</a>
+                                        <a class="dropdown-item" asp-area="Manager" asp-controller="Feedback" asp-action="Index">Feedback history</a>
                                     </li>
                                 </ul>
                             </li>
@@ -61,31 +61,31 @@
                         {
                             <li class="nav-item dropdown">
                                 <a class="nav-link text-dark dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Zarządzanie
+                                    Management
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li class="nav-item">
-                                        <a class="dropdown-item" asp-area="Manager" asp-controller="Asset" asp-action="Index">Samochody</a>
+                                        <a class="dropdown-item" asp-area="Manager" asp-controller="Asset" asp-action="Index">Assets</a>
                                     </li>
                                     <li><hr class="dropdown-divider" /></li>
                                     <li class="nav-item">
-                                        <a class="dropdown-item" asp-area="Manager" asp-controller="Reservation" asp-action="Index">Rezerwacje</a>
+                                        <a class="dropdown-item" asp-area="Manager" asp-controller="Reservation" asp-action="Index">Reservations</a>
                                     </li>
                                     <li><hr class="dropdown-divider" /></li>
                                     <li class="nav-item">
-                                        <a class="dropdown-item" asp-area="Manager" asp-controller="Fault" asp-action="Index">Usterki</a>
+                                        <a class="dropdown-item" asp-area="Manager" asp-controller="Fault" asp-action="Index">Faults</a>
                                     </li>
                                     <li><hr class="dropdown-divider" /></li>
                                     <li class="nav-item">
-                                        <a class="dropdown-item" asp-area="Manager" asp-controller="Feedback" asp-action="Index">Historia feedbacków</a>
+                                        <a class="dropdown-item" asp-area="Manager" asp-controller="Feedback" asp-action="Index">Feedback history</a>
                                     </li>
                                     <li><hr class="dropdown-divider" /></li>
                                     <li class="nav-item">
-                                        <a class="dropdown-item" asp-area="Admin" asp-controller="User" asp-action="Index">Użytkownicy</a>
+                                        <a class="dropdown-item" asp-area="Admin" asp-controller="User" asp-action="Index">Users</a>
                                     </li>
                                     <li><hr class="dropdown-divider" /></li>
                                     <li class="nav-item">
-                                        <a class="dropdown-item" asp-area="Admin" asp-controller="UserGroup" asp-action="Index">Grupy użytkowników</a>
+                                        <a class="dropdown-item" asp-area="Admin" asp-controller="UserGroup" asp-action="Index">User groups</a>
                                     </li>
                                 </ul>
                             </li>

@@ -1,7 +1,7 @@
 ﻿@model ReservationVM
 
 <div class="container mt-4">
-    <h2 class="text-center mb-4 text-primary">Przedłuż Rezerwację</h2>
+    <h2 class="text-center mb-4 text-primary">Extend Reservation</h2>
     <div class="row justify-content-center">
         <div class="col-12 col-md-8 col-lg-6">
             <div class="card shadow border-0">
@@ -13,16 +13,16 @@
                         <input type="hidden" asp-for="Reservation.AssetTag" />
                         <div class="mb-3">
                             <label class="form-label text-secondary">
-                                Aktualna data zwrotu: @Model.Reservation.ReturnDate.ToString("yyyy-MM-dd HH:mm")
+                                Current return date: @Model.Reservation.ReturnDate.ToString("yyyy-MM-dd HH:mm")
                             </label>
                         </div>
                         <div class="mb-3">
-                            <label for="newReturnDate" class="form-label text-secondary">Nowa data zwrotu:</label>
+                            <label for="newReturnDate" class="form-label text-secondary">New return date:</label>
                             <input type="datetime-local" id="newReturnDate" name="Reservation.ReturnDate"
                                    class="form-control"
                                    value="@Model.Reservation.ReturnDate.ToString("yyyy-MM-ddTHH:mm")" />
                         </div>
-                        <button type="submit" class="btn btn-primary">Przedłuż rezerwację</button>
+                        <button type="submit" class="btn btn-primary">Extend reservation</button>
                     </form>
                 </div>
             </div>

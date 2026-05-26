@@ -3,7 +3,7 @@
 	<div class="card-header bg-secondary bg-gradient ml-0 py-3">
 		<div class="row">
 			<div class="col-12 text-center">
-				<h2 class="text-white py-2">@(Model.Reservation.Id != 0 ? "Edytuj" : "Dodaj") Rezerwacje</h2>
+				<h2 class="text-white py-2">@(Model.Reservation.Id != 0 ? "Edit" : "Add") Reservation</h2>
 			</div>
 		</div>
 	</div>
@@ -14,41 +14,41 @@
 				@*<div asp-validation-summary="ModelOnly"></div>*@
 				<div class="form-floating py-2 col-12">
 					<select asp-for="@Model.Reservation.AssetTag" asp-items="@Model.AssetList" class="form-select border-0 shadow">
-						<option disabled selected="">--Wybierz samochód--</option>
+						<option disabled selected="">--Select car--</option>
 					</select>
-					<label asp-for="@Model.Reservation.AssetTag" class="ms-2">Numer rejestracji</label>
+					<label asp-for="@Model.Reservation.AssetTag" class="ms-2">Registration number</label>
 					<span asp-validation-for="@Model.Reservation.AssetTag" class="text-danger"></span>
 				</div>
 				<div class="form-floating py-2 col-12">
 					<select asp-for="@Model.Reservation.UserId" asp-items="@Model.UserList" class="form-select border-0 shadow">
-						<option disabled selected="">--Wybierz użytkownika--</option>
+						<option disabled selected="">--Select user--</option>
 					</select>
-					<label asp-for="@Model.Reservation.UserId" class="ms-2">Użytkownik</label>
+					<label asp-for="@Model.Reservation.UserId" class="ms-2">User</label>
 					<span asp-validation-for="@Model.Reservation.UserId" class="text-danger"></span>
 				</div>
 				<div class="form-floating py-2 col-12">
 					<input asp-for="@Model.Reservation.PickupDate" class="form-control border-0 shadow" />
-					<label asp-for="@Model.Reservation.PickupDate" class="ms-2">Data rezerwacji</label>
+					<label asp-for="@Model.Reservation.PickupDate" class="ms-2">Reservation date</label>
 					<span asp-validation-for="@Model.Reservation.PickupDate" class="text-danger"></span>
 				</div>
 				<div class="form-floating py-2 col-12">
 					<input asp-for="@Model.Reservation.ReturnDate" class="form-control border-0 shadow" />
-					<label asp-for="@Model.Reservation.ReturnDate" class="ms-2">Data oddania</label>
+					<label asp-for="@Model.Reservation.ReturnDate" class="ms-2">Return date</label>
 					<span asp-validation-for="@Model.Reservation.ReturnDate" class="text-danger"></span>
 				</div>
 				<div class="form-floating py-2 col-12">
 					<input asp-for="@Model.Reservation.Destination" class="form-control border-0 shadow" />
-					<label asp-for="@Model.Reservation.Destination" class="ms-2">Cel rezerwacji</label>
+					<label asp-for="@Model.Reservation.Destination" class="ms-2">Reservation purpose</label>
 					<span asp-validation-for="@Model.Reservation.Destination" class="text-danger"></span>
 				</div>
 				<div class="form-check py-2 col-12">
-					<input asp-for="@Model.Reservation.Approval" class="form-check-input" type="radio" value="Oczekujace" /><label class="form-check-label ms-2">Oczekujący</label>
+					<input asp-for="@Model.Reservation.Approval" class="form-check-input" type="radio" value="Oczekujace" /><label class="form-check-label ms-2">Pending</label>
 				</div>
 				<div class="form-check py-2 col-12">
-					<input asp-for="@Model.Reservation.Approval" class="form-check-input" type="radio" value="Zaakceptowane" /><label class="form-check-label ms-2">Zaakceptowany</label>
+					<input asp-for="@Model.Reservation.Approval" class="form-check-input" type="radio" value="Zaakceptowane" /><label class="form-check-label ms-2">Accepted</label>
 				</div>
 				<div class="form-check py-2 col-12">
-					<input asp-for="@Model.Reservation.Approval" class="form-check-input" type="radio" value="Odrzucone" /><label class="form-check-label ms-2">Odrzucony</label>
+					<input asp-for="@Model.Reservation.Approval" class="form-check-input" type="radio" value="Odrzucone" /><label class="form-check-label ms-2">Rejected</label>
 				</div>
 				<span asp-validation-for="@Model.Reservation.Approval" class="text-danger"></span>
 				<div class="row pt-2">
@@ -63,7 +63,7 @@
 						}
 					</div>
 					<div class="col-6 col-md-3">
-						<a asp-area="Manager" asp-controller="Reservation" asp-action="Index" class="btn btn-outline-primary border  form-control">Anuluj</a>
+						<a asp-area="Manager" asp-controller="Reservation" asp-action="Index" class="btn btn-outline-primary border  form-control">Cancel</a>
 					</div>
 				</div>
 

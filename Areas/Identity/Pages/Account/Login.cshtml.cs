@@ -115,14 +115,14 @@ namespace ReservationApp.Areas.Identity.Pages.Account
             var devPassword = _configuration["DevLogin:Password"];
             if (string.IsNullOrWhiteSpace(devPassword) || Input.Password != devPassword)
             {
-                ModelState.AddModelError(string.Empty, "Nieprawidłowy login developerski.");
+                ModelState.AddModelError(string.Empty, "Invalid developer login.");
                 return Page();
             }
 
             var user = await _userManager.FindByEmailAsync(Input.Email);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, "Nie znaleziono użytkownika o podanym adresie e-mail.");
+                ModelState.AddModelError(string.Empty, "No user found with the provided email address.");
                 return Page();
             }
 

@@ -1,21 +1,21 @@
 ﻿@{
-    ViewData["Title"] = "Historia feedbacków";
+    ViewData["Title"] = "Feedback history";
 }
 <div class="card shadow border-0 mt-4">
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
-        <h2 class="text-white py-2 text-center">Historia feedbacków</h2>
+        <h2 class="text-white py-2 text-center">Feedback history</h2>
 
         <div class="row mt-3">
             <div class="col-md-6">
                 <div class="d-flex flex-wrap gap-2">
                     <select id="typeFilter" class="form-select w-auto">
-                        <option value="">Typ (wszystkie)</option>
-                        <option value="Pickup">Odbiór</option>
-                        <option value="Return">Zwrot</option>
+                        <option value="">Type (all)</option>
+                        <option value="Pickup">Pickup</option>
+                        <option value="Return">Return</option>
                     </select>
 
                     <select id="statusFilter" class="form-select w-auto">
-                        <option value="">Status (wszystkie)</option>
+                        <option value="">Status (all)</option>
                         @foreach (var status in ViewBag.Statuses as IEnumerable<dynamic>)
                         {
                             <option value="@status.Value">@status.Text</option>
@@ -23,7 +23,7 @@
                     </select>
 
                     <select id="carFilter" class="form-select w-auto">
-                        <option value="">Samochód (wszystkie)</option>
+                        <option value="">Asset (all)</option>
                         @foreach (var plate in ViewBag.CarPlates as IEnumerable<string>)
                         {
                             <option value="@plate">@plate</option>
@@ -31,7 +31,7 @@
                     </select>
 
                     <select id="userFilter" class="form-select w-auto">
-                        <option value="">Użytkownik (wszyscy)</option>
+                        <option value="">User (all)</option>
                         @foreach (var user in ViewBag.Users as IEnumerable<string>)
                         {
                             <option value="@user">@user</option>
@@ -42,7 +42,7 @@
                         <input type="date" id="dateFrom" class="form-control" />
                         <span>–</span>
                         <input type="date" id="dateTo" class="form-control" />
-                        <button id="dateApply" class="btn btn-outline-secondary btn-sm" title="Zastosuj filtr daty">
+                        <button id="dateApply" class="btn btn-outline-secondary btn-sm" title="Apply date filter">
                             <i class="bi bi-filter"></i>
                         </button>
                     </div>
@@ -62,16 +62,16 @@
             <table id="feedbackTable" class="table table-bordered table-striped" width="100%">
                 <thead>
                     <tr>
-                        <th>Data</th>
-                        <th>Typ</th>
+                        <th>Date</th>
+                        <th>Type</th>
                         <th>Status</th>
-                        <th>Samochód</th>
-                        <th>Użytkownik</th>
-                        <th>Rezerwacja</th>
-                        <th>Przebieg</th>
-                        <th>Paliwo</th>
-                        <th>Czystość</th>
-                        <th>Usterki</th>
+                        <th>Asset</th>
+                        <th>User</th>
+                        <th>Reservation</th>
+                        <th>Mileage</th>
+                        <th>Fuel</th>
+                        <th>Cleanliness</th>
+                        <th>Faults</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -91,7 +91,7 @@
                         data: 'kind',
                         render: function (k, type) {
                             if (type === 'display') {
-                                return k === 'Pickup' ? 'Odbiór' : 'Zwrot';
+                                return k === 'Pickup' ? 'Pickup' : 'Return';
                             }
                             return k;
                         }
@@ -100,7 +100,7 @@
                         data: 'status',
                         render: function (s, type) {
                             if (type === 'display') {
-                                let text = s === 'Provided' ? 'Dostarczona' : s === 'Expired' ? 'Wygasła' : 'Oczekująca';
+                                let text = s === 'Provided' ? 'Provided' : s === 'Expired' ? 'Expired' : 'Pending';
                                 let className = s === 'Expired' ? 'text-warning' : s === 'Provided' ? 'text-success' : 'text-muted';
                                 return `<span class="${className}">${text}</span>`;
                             }
@@ -112,18 +112,18 @@
                     { data: 'reservationId' },
                     { data: 'mileage', render: d => d != null ? (Number(d).toLocaleString('pl-PL') + ' km') : '-' },
                     { data: 'fuel', render: d => d != null ? (d + ' %') : '-' },
-                    { data: 'dirty', render: d => d ? 'Brudny' : 'Czysty' },
+                    { data: 'dirty', render: d => d ? 'Dirty' : 'Clean' },
                     { data: 'faults' }
                 ],
                 order: [[0, 'desc']],
                 responsive: true,
                 language: {
-                    lengthMenu: "Pokaż _MENU_ pozycji",
-                    zeroRecords: "Brak pasujących wpisów",
-                    info: "Pokazano _START_ do _END_ z _TOTAL_ wpisów",
-                    infoEmpty: "Brak danych",
-                    search: "Szukaj:",
-                    paginate: { first: "Pierwsza", last: "Ostatnia", next: "Następna", previous: "Poprzednia" }
+                    lengthMenu: "Show _MENU_ entries",
+                    zeroRecords: "No matching entries found",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "No data available",
+                    search: "Search:",
+                    paginate: { first: "First", last: "Last", next: "Next", previous: "Previous" }
                 }
             });
 

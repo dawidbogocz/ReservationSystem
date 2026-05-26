@@ -4,7 +4,7 @@
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
         <div class="row">
             <div class="col-12 text-center">
-                <h2 class="text-white py-2">Grupy użytkowników</h2>
+                <h2 class="text-white py-2">User Groups</h2>
             </div>
         </div>
     </div>
@@ -14,7 +14,7 @@
             <div class="col-6"></div>
             <div class="col-6 text-end">
                 <a asp-area="Admin" asp-controller="UserGroup" asp-action="Upsert" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Dodaj grupę
+                    <i class="bi bi-plus-circle"></i> Add group
                 </a>
             </div>
         </div>
@@ -22,9 +22,9 @@
         <table class="table table-bordered table-striped" style="width:100%">
             <thead>
                 <tr>
-                    <th>Nazwa</th>
-                    <th>Managerowie</th>
-                    <th>Pracownicy</th>
+                    <th>Name</th>
+                    <th>Managers</th>
+                    <th>Employees</th>
                     <th style="width:180px"></th>
                 </tr>
             </thead>
@@ -41,7 +41,7 @@
                             }
                             else
                             {
-                                <span class="text-muted">Brak</span>
+                                <span class="text-muted">None</span>
                             }
                         </td>
 
@@ -54,7 +54,7 @@
                                    asp-action="Upsert"
                                    asp-route-id="@group.Id"
                                    class="btn btn-primary mx-1">
-                                    <i class="bi bi-pencil-square"></i> Edytuj
+                                    <i class="bi bi-pencil-square"></i> Edit
                                 </a>
 
                                 <form asp-area="Admin"
@@ -62,10 +62,10 @@
                                       asp-action="Delete"
                                       asp-route-id="@group.Id"
                                       method="post"
-                                      onsubmit="return confirm('Czy na pewno usunąć tę grupę?');">
+                                      onsubmit="return confirm('Are you sure you want to delete this group?');">
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger mx-1">
-                                        <i class="bi bi-trash-fill"></i> Usuń
+                                        <i class="bi bi-trash-fill"></i> Delete
                                     </button>
                                 </form>
                             </div>

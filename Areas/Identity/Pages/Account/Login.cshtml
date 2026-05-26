@@ -5,7 +5,7 @@
     <div class="card-header bg-secondary bg-gradient ml-0 py-4">
         <div class="row">
             <div class="col-12 text-center">
-                <h2 class="py-2 text-white">Logowanie</h2>
+                <h2 class="py-2 text-white">Sign In</h2>
             </div>
         </div>
     </div>
@@ -13,39 +13,39 @@
         @if (Model.IsDevLoginEnabled)
         {
             <div class="alert alert-warning">
-                Logowanie developerskie jest aktywne tylko dla środowiska Development. Użyj e-maila istniejącego użytkownika i hasła z konfiguracji <code>DevLogin:Password</code>.
+                Developer login is active only for the Development environment. Use an existing user's email and password from the <code>DevLogin:Password</code> configuration.
             </div>
 
             <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
                 <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
 
                 <div class="mb-3">
-                    <label asp-for="Input.Email" class="form-label">Email użytkownika</label>
+                    <label asp-for="Input.Email" class="form-label">User email</label>
                     <input asp-for="Input.Email" class="form-control" autocomplete="username" />
                     <span asp-validation-for="Input.Email" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="Input.Password" class="form-label">Hasło developerskie</label>
+                    <label asp-for="Input.Password" class="form-label">Developer password</label>
                     <input asp-for="Input.Password" class="form-control" autocomplete="current-password" />
                     <span asp-validation-for="Input.Password" class="text-danger"></span>
                 </div>
 
                 <div class="form-check mb-3">
                     <input asp-for="Input.RememberMe" class="form-check-input" />
-                    <label asp-for="Input.RememberMe" class="form-check-label">Zapamiętaj mnie</label>
+                    <label asp-for="Input.RememberMe" class="form-check-label">Remember me</label>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Zaloguj developersko</button>
-                <a class="btn btn-outline-secondary" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl">Logowanie SAML</a>
+                <button type="submit" class="btn btn-primary">Developer login</button>
+                <a class="btn btn-outline-secondary" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl">SAML Login</a>
             </form>
         }
         else
         {
             <div class="text-center">
-                <p class="mb-3">Ta aplikacja używa wyłącznie logowania SAML.</p>
+                <p class="mb-3">This application uses only SAML login.</p>
                 <a class="btn btn-primary" asp-page="./ExternalLogin" asp-route-returnUrl="@Request.Query["returnUrl"]">
-                    Przejdź do logowania SAML
+                    Go to SAML login
                 </a>
             </div>
         }

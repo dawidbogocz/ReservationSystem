@@ -4,7 +4,7 @@
 	<div class="card-header bg-secondary bg-gradient ml-0 py-3">
 		<div class="row">
 			<div class="col-12 text-center">
-				<h2 class="text-white py-2">Edytuj Samochód</h2>
+				<h2 class="text-white py-2">Edit Asset</h2>
 			</div>
 		</div>
 	</div>
@@ -16,21 +16,21 @@
 					<div class="border p-3 mt-2">
 						<div class="form-floating py-2 col-12">
 							<input asp-for="@Model.Asset.AssetTag" class="form-control border-0 shadow" />
-							<label asp-for="@Model.Asset.AssetTag" class="ms-2">Numer rejestracji</label>
+							<label asp-for="@Model.Asset.AssetTag" class="ms-2">Registration Number</label>
 							<span asp-validation-for="@Model.Asset.AssetTag" class="text-danger"></span>
 						</div>
 
 						<div class="form-floating py-2 col-12">
 							<select asp-for="Asset.AssetType" class="form-select border-0 shadow">
-								<option value="Car">Samochód</option>
-								<option value="Lift">Podnośnik</option>
+								<option value="Car">Car</option>
+								<option value="Lift">Lift</option>
 							</select>
-							<label asp-for="Asset.AssetType" class="ms-2">Typ pojazdu</label>
+							<label asp-for="Asset.AssetType" class="ms-2">Vehicle type</label>
 						</div>
 
 						<div class="form-floating py-2 col-12">
 							<input asp-for="@Model.Asset.Make" class="form-control border-0 shadow" />
-							<label asp-for="@Model.Asset.Make" class="ms-2">Marka</label>
+							<label asp-for="@Model.Asset.Make" class="ms-2">Make</label>
 							<span asp-validation-for="@Model.Asset.Make" class="text-danger"></span>
 						</div>
 
@@ -42,38 +42,38 @@
 
 						<div class="form-floating py-2 col-12">
 							<input asp-for="@Model.Asset.InspectionDate" class="form-control border-0 shadow" type="date" />
-							<label asp-for="@Model.Asset.InspectionDate" class="ms-2">Przegląd</label>
+							<label asp-for="@Model.Asset.InspectionDate" class="ms-2">Inspection</label>
 							<span asp-validation-for="@Model.Asset.InspectionDate" class="text-danger"></span>
 						</div>
 
 						<div class="form-floating py-2 col-12">
 							<input asp-for="@Model.Asset.ServiceDate" class="form-control border-0 shadow" type="date" />
-							<label asp-for="@Model.Asset.ServiceDate" class="ms-2">Serwis</label>
+							<label asp-for="@Model.Asset.ServiceDate" class="ms-2">Service</label>
 							<span asp-validation-for="@Model.Asset.ServiceDate" class="text-danger"></span>
 						</div>
 
 						<div class="form-check form-switch py-2 col-12">
 							<input asp-for="@Model.Asset.IsDamaged" class="form-check-input" type="checkbox" />
-							<label asp-for="@Model.Asset.IsDamaged" class="form-check-label">Czy samochód jest brudny?</label>
+							<label asp-for="@Model.Asset.IsDamaged" class="form-check-label">Is the car dirty?</label>
 						</div>
 						<div class="form-check form-switch py-2 col-12">
 							<input asp-for="@Model.Asset.HasTracking" class="form-check-input" type="checkbox" />
-							<label asp-for="@Model.Asset.HasTracking" class="form-check-label">Czy samochód posiada videotolling?</label>
+							<label asp-for="@Model.Asset.HasTracking" class="form-check-label">Does the car have videotolling?</label>
 						</div>
 
 						<div class="form-floating py-2 col-12">
 							<input type="file" name="file" class="form-control border-0 shadow" />
-							<label asp-for="@Model.Asset.ImageUrl" class="ms-2">Zdjęcie</label>
+							<label asp-for="@Model.Asset.ImageUrl" class="ms-2">Photo</label>
 						</div>
 
 						<div class="form-floating py-2 col-12">
 							<input asp-for="Asset.Mileage" class="form-control border-0 shadow" min="0" />
-							<label asp-for="Asset.Mileage" class="ms-2">Przebieg (km)</label>
+							<label asp-for="Asset.Mileage" class="ms-2">Mileage (km)</label>
 							<span asp-validation-for="Asset.Mileage" class="text-danger"></span>
 						</div>
 
 						<div class="py-2 col-12" id="fuelSection">
-							<label class="form-label" asp-for="Asset.FuelLevel" id="fuelLabel">Paliwo (%)</label>
+							<label class="form-label" asp-for="Asset.FuelLevel" id="fuelLabel">Fuel (%)</label>
 							<input type="range" asp-for="Asset.FuelLevel" class="form-range" min="0" max="100" oninput="updateFuel(this.value)">
 							<div class="progress" style="height:20px;">
 								<div id="fuelBar" class="progress-bar bg-success" role="progressbar" style="width:50%">50%</div>
@@ -83,10 +83,10 @@
 
 						<div class="row pt-2">
 							<div class="col-6 col-md-3">
-								<button type="submit" class="btn btn-primary form-control">Edytuj</button>
+								<button type="submit" class="btn btn-primary form-control">Edit</button>
 							</div>
 							<div class="col-6 col-md-3">
-								<a asp-area="Manager" asp-controller="Asset" asp-action="Index" class="btn btn-outline-primary border form-control">Anuluj</a>
+								<a asp-area="Manager" asp-controller="Asset" asp-action="Index" class="btn btn-outline-primary border form-control">Cancel</a>
 							</div>
 						</div>
 					</div>
@@ -113,7 +113,7 @@
 		
 		document.getElementById('Car_AssetType').addEventListener('change', function () {
 			const label = document.getElementById('fuelLabel');
-			label.innerText = this.value === 'Lift' ? 'Poziom naładowania (SoC %)' : 'Paliwo (%)';
+			label.innerText = this.value === 'Lift' ? 'Charge level (SoC %)' : 'Fuel (%)';
 		});
 	</script>
 

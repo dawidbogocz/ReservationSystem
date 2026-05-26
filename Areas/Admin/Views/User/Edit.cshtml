@@ -1,7 +1,7 @@
 ﻿@model ReservationApp.Models.ApplicationUser
 
 @{
-    ViewData["Title"] = "Edytuj użytkownika";
+    ViewData["Title"] = "Edit User";
 }
 
 <h2>@ViewData["Title"]</h2>
@@ -10,13 +10,13 @@
     <input asp-for="Id" type="hidden" />
 
     <div class="mb-3">
-        <label asp-for="FirstName" class="form-label">Imie</label>
+        <label asp-for="FirstName" class="form-label">First name</label>
         <input asp-for="FirstName" class="form-control" required />
         <span asp-validation-for="FirstName" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="LastName" class="form-label">Nazwisko</label>
+        <label asp-for="LastName" class="form-label">Last name</label>
         <input asp-for="LastName" class="form-control" required />
         <span asp-validation-for="LastName" class="text-danger"></span>
     </div>
@@ -28,24 +28,24 @@
     </div>
 
 	<div class="mb-3">
-		<label asp-for="PhoneNumber" class="form-label">Numer telefonu</label>
+		<label asp-for="PhoneNumber" class="form-label">Phone number</label>
 		<input asp-for="PhoneNumber" class="form-control" required />
 		<span asp-validation-for="PhoneNumber" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label for="role" class="form-label">Rola</label>
+        <label for="role" class="form-label">Role</label>
         <select name="role" asp-items="ViewBag.RoleList" class="form-select"></select>
     </div>
 
     <div class="mb-3">
-        <label asp-for="UserGroupId" class="form-label">Grupa / dział</label>
+        <label asp-for="UserGroupId" class="form-label">Group / Department</label>
         <select asp-for="UserGroupId" asp-items="ViewBag.GroupList" class="form-select">
-            <option value="">-- brak grupy --</option>
+            <option value="">-- no group --</option>
         </select>
         <span asp-validation-for="UserGroupId" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-primary">Zapisz</button>
-    <a asp-action="Index" class="btn btn-secondary">Anuluj</a>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
 </form>

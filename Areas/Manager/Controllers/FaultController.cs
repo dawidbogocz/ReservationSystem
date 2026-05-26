@@ -155,7 +155,7 @@ namespace ReservationApp.Areas.Manager.Controllers
             if (faultVM.Fault.IsDrivable && string.IsNullOrWhiteSpace(faultVM.Fault.DrivableComment))
             {
                 ModelState.AddModelError("Fault.DrivableComment",
-                    "Podaj komentarz, dlaczego można użytkować auto mimo usterki.");
+                    "Provide a comment explaining why the car can be used despite the fault.");
             }
 
             faultVM.AssetList = (await _unitOfWork.Asset.GetAllAsync())
@@ -184,12 +184,12 @@ namespace ReservationApp.Areas.Manager.Controllers
 
                 var fault = await _unitOfWork.Fault.GetAsync(u => u.Id == id);
                 if (fault == null)
-                    return Json(new { success = false, message = "Nie znaleziono usterki." });
+                    return Json(new { success = false, message = "Fault not found." });
 
                 _unitOfWork.Fault.Remove(fault);
                 _unitOfWork.Save();
 
-                return Json(new { success = true, message = "Usterka usunięta pomyślnie." });
+                return Json(new { success = true, message = "Fault deleted successfully." });
             }
             catch (Exception ex)
             {
@@ -214,9 +214,9 @@ namespace ReservationApp.Areas.Manager.Controllers
                         f.AssetTag,
                         f.Description,
                         User = f.User.FirstName + " " + f.User.LastName,
-                        isDrivable = (f.IsFixed || f.IsDrivable) ? "Tak" : "Nie",
+                        isDrivable = (f.IsFixed || f.IsDrivable) ? "Yes" : "No",
                         comment = f.DrivableComment,
-                        Status = f.IsFixed ? "Usterka naprawiona" : "Usterka nie naprawiona",
+                        Status = f.IsFixed ? "Fixed" : "Not fixed",
                         isFixed = f.IsFixed,
                         f.FixDescription,
                         dateReported = f.DateReported,
@@ -245,10 +245,10 @@ namespace ReservationApp.Areas.Manager.Controllers
                 var q = (await _unitOfWork.Fault.GetAllAsync(null, "User,FixedByUser")).AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(status))
-                    q = q.Where(f => status == "naprawiona" ? f.IsFixed : !f.IsFixed);
+                    q = q.Where(f => status == "fixed" ? f.IsFixed : !f.IsFixed);
 
                 if (!string.IsNullOrWhiteSpace(drive))
-                    q = q.Where(f => ((f.IsFixed || f.IsDrivable) ? "Tak" : "Nie") == drive);
+                    q = q.Where(f => ((f.IsFixed || f.IsDrivable) ? "Yes" : "No") == drive);
 
                 if (!string.IsNullOrWhiteSpace(car))
                     q = q.Where(f => f.AssetTag == car);
@@ -261,23 +261,23 @@ namespace ReservationApp.Areas.Manager.Controllers
                             {
                                 f.Id,
                                 f.AssetTag,
-                                ZgloszonePrzez = $"{f.User.FirstName} {f.User.LastName}",
-                                DataZgloszenia = f.DateReported,
-                                DataNaprawy = f.FixDate,
+                                ReportedBy = $"{f.User.FirstName} {f.User.LastName}",
+                                DateReported = f.DateReported,
+                                DateFixed = f.FixDate,
                                 f.Description,
-                                Status = f.IsFixed ? "Naprawiona" : "Nienaprawiona",
-                                Jezdne = (f.IsFixed || f.IsDrivable) ? "Tak" : "Nie",
+                                Status = f.IsFixed ? "Fixed" : "Not fixed",
+                                Drivable = (f.IsFixed || f.IsDrivable) ? "Yes" : "No",
                                 f.DrivableComment,
                                 f.FixDescription
                             });
 
                 using var wb = new ClosedXML.Excel.XLWorkbook();
-                wb.Worksheets.Add("Usterki").FirstCell().InsertTable(rows);
+                wb.Worksheets.Add("Faults").FirstCell().InsertTable(rows);
                 wb.Worksheet(1).Columns().AdjustToContents();
 
                 using var ms = new MemoryStream();
                 wb.SaveAs(ms); ms.Position = 0;
-                return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"usterki_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
+                return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"faults_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
             }
             catch (Exception ex)
             {
@@ -294,7 +294,7 @@ namespace ReservationApp.Areas.Manager.Controllers
                 var fault = await _unitOfWork.Fault.GetAsync(f => f.Id == id);
 
                 if (fault == null)
-                    return Json(new { success = false, message = "Nie znaleziono usterki." });
+                    return Json(new { success = false, message = "Fault not found." });
 
                 var now = DateTime.Now;
 
@@ -318,13 +318,13 @@ namespace ReservationApp.Areas.Manager.Controllers
                 return Json(new
                 {
                     success = true,
-                    status = fault.IsFixed ? "Usterka naprawiona" : "Usterka nie naprawiona",
+                    status = fault.IsFixed ? "Fixed" : "Not fixed",
                     fixDate = fault.FixDate
                 });
             }
             catch (Exception)
             {
-                return Json(new { success = false, message = "Błąd podczas aktualizacji statusu." });
+                return Json(new { success = false, message = "Error updating status." });
             }
         }
 
@@ -339,7 +339,7 @@ namespace ReservationApp.Areas.Manager.Controllers
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
             if (!DateTime.TryParse(date, out var parsedDate))
-                return Json(new { success = false, message = "Niepoprawny format daty." });
+                return Json(new { success = false, message = "Invalid date format." });
 
             fault.IsFixed = true;
             fault.FixDescription = description;

@@ -42,13 +42,13 @@ namespace ReservationApp.Areas.Manager.Controllers
         #region VIEWS
 
         /// <summary>
-        /// Returns the correct Polish noun forms for a given vehicle type.
+        /// Returns the correct English noun for a given vehicle type.
         /// </summary>
-        private (string mianownik, string dopełniacz, string narzędnik) GetVehicleWord(AssetType type)
+        private (string nominative, string genitive, string instrumental) GetVehicleWord(AssetType type)
         {
             return type == AssetType.Lift
-                ? ("podnośnik", "podnośnika", "podnośnikiem")
-                : ("samochód", "samochodu", "samochodem");
+                ? ("lift", "lift", "lift")
+                : ("car", "car", "car");
         }
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace ReservationApp.Areas.Manager.Controllers
                 reservationVM.UserList = usersForManager
                     .Select(i => new SelectListItem { Text = $"{i.FirstName} {i.LastName}", Value = i.Id });
 
-                TempData["error"] = "Coś poszło nie tak";
+TempData["error"] = "Something went wrong";
                 return View(reservationVM);
             }
 
@@ -166,7 +166,7 @@ namespace ReservationApp.Areas.Manager.Controllers
             try
             {
                 bool isNewReservation = reservationVM.Reservation.Id == 0;
-                string statusMessage = isNewReservation ? "Dodano nową rezerwację" : "Zaktualizowano rezerwację";
+                string statusMessage = isNewReservation ? "New reservation added" : "Reservation updated";
 
                 var reservation = isNewReservation
                     ? new Reservation()
@@ -202,7 +202,7 @@ namespace ReservationApp.Areas.Manager.Controllers
 
                 TempData["success"] = statusMessage;
 
-                if (reservation.Approval == Approval.Zaakceptowane || reservation.Approval == Approval.Odrzucone)
+                if (reservation.Approval == Approval.Accepted || reservation.Approval == Approval.Rejected)
                 {
                     await SendReservationEmailsAsync(reservation);
                 }
@@ -235,14 +235,14 @@ namespace ReservationApp.Areas.Manager.Controllers
 
                 string approvalStatus = reservation.Approval.ToString();
 
-                string userSubject = "Status Twojej rezerwacji";
+                string userSubject = "Your reservation status";
 
-                string userBody = $"Witaj {user.FirstName},<br/><br/>" +
-                                  $"Twoja rezerwacja pojazdu o numerze rejestracyjnym " +
+                string userBody = $"Hello {user.FirstName},<br/><br/>" +
+                                  $"Your reservation for vehicle with license plate " +
                                   $"<strong>{reservation.AssetTag}</strong> " +
-                                  $"na okres od <strong>{reservation.PickupDate:yyyy-MM-dd HH:mm}</strong> " +
-                                  $"do <strong>{reservation.ReturnDate:yyyy-MM-dd HH:mm}</strong> " +
-                                  $"została oznaczona jako <strong>{approvalStatus}</strong>.";
+                                  $"from <strong>{reservation.PickupDate:yyyy-MM-dd HH:mm}</strong> " +
+                                  $"to <strong>{reservation.ReturnDate:yyyy-MM-dd HH:mm}</strong> " +
+                                  $"has been marked as <strong>{approvalStatus}</strong>.";
 
                 await _emailSender.SendEmailAsync(user.Email, userSubject, userBody);
 
@@ -250,15 +250,15 @@ namespace ReservationApp.Areas.Manager.Controllers
 
                 foreach (var manager in managers.Where(x => !string.IsNullOrWhiteSpace(x.Email)))
                 {
-                    string managerSubject = "Powiadomienie o rezerwacji użytkownika";
+                    string managerSubject = "User reservation notification";
 
-                    string managerBody = $"Dzień dobry,<br/><br/>" +
-                                         $"Użytkownik <strong>{user.FirstName} {user.LastName}</strong> " +
-                                         $"ma rezerwację pojazdu o numerze rejestracyjnym " +
+                    string managerBody = $"Hello,<br/><br/>" +
+                                         $"User <strong>{user.FirstName} {user.LastName}</strong> " +
+                                         $"has a reservation for vehicle with license plate " +
                                          $"<strong>{reservation.AssetTag}</strong> " +
-                                         $"na okres od <strong>{reservation.PickupDate:yyyy-MM-dd HH:mm}</strong> " +
-                                         $"do <strong>{reservation.ReturnDate:yyyy-MM-dd HH:mm}</strong>.<br/><br/>" +
-                                         $"Status rezerwacji: <strong>{approvalStatus}</strong>.";
+                                         $"from <strong>{reservation.PickupDate:yyyy-MM-dd HH:mm}</strong> " +
+                                         $"to <strong>{reservation.ReturnDate:yyyy-MM-dd HH:mm}</strong>.<br/><br/>" +
+                                         $"Reservation status: <strong>{approvalStatus}</strong>.";
 
                     await _emailSender.SendEmailAsync(manager.Email, managerSubject, managerBody);
                 }
@@ -278,14 +278,14 @@ namespace ReservationApp.Areas.Manager.Controllers
                 if (user == null)
                     return;
 
-                string userSubject = "Twoja rezerwacja została usunięta";
+                string userSubject = "Your reservation has been deleted";
 
-                string userBody = $"Witaj {user.FirstName},<br/><br/>" +
-                                  $"Twoja rezerwacja pojazdu o numerze rejestracyjnym " +
+                string userBody = $"Hello {user.FirstName},<br/><br/>" +
+                                  $"Your reservation for vehicle with license plate " +
                                   $"<strong>{reservation.AssetTag}</strong> " +
-                                  $"na okres od <strong>{reservation.PickupDate:yyyy-MM-dd HH:mm}</strong> " +
-                                  $"do <strong>{reservation.ReturnDate:yyyy-MM-dd HH:mm}</strong> " +
-                                  $"została usunięta.";
+                                  $"from <strong>{reservation.PickupDate:yyyy-MM-dd HH:mm}</strong> " +
+                                  $"to <strong>{reservation.ReturnDate:yyyy-MM-dd HH:mm}</strong> " +
+                                  $"has been deleted.";
 
                 await _emailSender.SendEmailAsync(user.Email, userSubject, userBody);
 
@@ -293,15 +293,15 @@ namespace ReservationApp.Areas.Manager.Controllers
 
                 foreach (var manager in managers.Where(x => !string.IsNullOrWhiteSpace(x.Email)))
                 {
-                    string managerSubject = "Powiadomienie o usunięciu rezerwacji";
+                    string managerSubject = "Reservation deletion notification";
 
-                    string managerBody = $"Dzień dobry,<br/><br/>" +
-                                         $"Rezerwacja użytkownika <strong>{user.FirstName} {user.LastName}</strong> " +
-                                         $"dla pojazdu o numerze rejestracyjnym " +
+                    string managerBody = $"Hello,<br/><br/>" +
+                                         $"Reservation of user <strong>{user.FirstName} {user.LastName}</strong> " +
+                                         $"for vehicle with license plate " +
                                          $"<strong>{reservation.AssetTag}</strong> " +
-                                         $"na okres od <strong>{reservation.PickupDate:yyyy-MM-dd HH:mm}</strong> " +
-                                         $"do <strong>{reservation.ReturnDate:yyyy-MM-dd HH:mm}</strong> " +
-                                         $"została usunięta.";
+                                         $"from <strong>{reservation.PickupDate:yyyy-MM-dd HH:mm}</strong> " +
+                                         $"to <strong>{reservation.ReturnDate:yyyy-MM-dd HH:mm}</strong> " +
+                                         $"has been deleted.";
 
                     await _emailSender.SendEmailAsync(manager.Email, managerSubject, managerBody);
                 }
@@ -362,10 +362,10 @@ namespace ReservationApp.Areas.Manager.Controllers
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (reservation == null)
-                return Json(new { success = false, message = "Błąd podczas usuwania: Rezerwacja nie znaleziona" });
+                return Json(new { success = false, message = "Error while deleting: Reservation not found" });
 
             if (!await CanCurrentUserAccessReservationAsync(reservation))
-                return Json(new { success = false, message = "Nie masz uprawnień do tej rezerwacji." });
+                return Json(new { success = false, message = "You do not have permission for this reservation." });
 
             using (var transaction = await _unitOfWork.Context.Database.BeginTransactionAsync())
             {
@@ -386,7 +386,7 @@ namespace ReservationApp.Areas.Manager.Controllers
                     await SendReservationDeletionEmailsAsync(reservation);
 
                     await transaction.CommitAsync();
-                    return Json(new { success = true, message = "Rezerwacja i powiązane opinie zostały usunięte pomyślnie" });
+                    return Json(new { success = true, message = "Reservation and associated feedback have been deleted successfully" });
                 }
                 catch (Exception ex)
                 {
@@ -406,16 +406,16 @@ namespace ReservationApp.Areas.Manager.Controllers
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (reservation == null)
-                return Json(new { success = false, message = "Rezerwacja nie znaleziona." });
+                return Json(new { success = false, message = "Reservation not found." });
 
             if (!await CanCurrentUserAccessReservationAsync(reservation))
-                return Json(new { success = false, message = "Nie masz uprawnień do tej rezerwacji." });
+                return Json(new { success = false, message = "You do not have permission for this reservation." });
 
-            if (reservation.Approval != Approval.Oczekujace)
-                return Json(new { success = false, message = "Rezerwacja została już przetworzona." });
+            if (reservation.Approval != Approval.Pending)
+                return Json(new { success = false, message = "Reservation has already been processed." });
 
             if (!Enum.TryParse<Approval>(status, out var newStatus))
-                return Json(new { success = false, message = "Nieprawidłowy status." });
+                return Json(new { success = false, message = "Invalid status." });
 
             var currentUser = await _userManager.GetUserAsync(User);
             reservation.Approval = newStatus;
@@ -427,12 +427,12 @@ namespace ReservationApp.Areas.Manager.Controllers
                 _unitOfWork.Reservation.Update(reservation);
                 _unitOfWork.Save();
 
-                if (newStatus == Approval.Zaakceptowane || newStatus == Approval.Odrzucone)
+                if (newStatus == Approval.Accepted || newStatus == Approval.Rejected)
                 {
                     await SendReservationEmailsAsync(reservation);
                 }
 
-                return Json(new { success = true, message = $"Rezerwacja została oznaczona jako {newStatus}" });
+                return Json(new { success = true, message = $"Reservation has been marked as {newStatus}" });
             }
             catch (Exception ex)
             {
@@ -591,18 +591,18 @@ namespace ReservationApp.Areas.Manager.Controllers
                 var exportReservations = query.OrderBy(r => r.PickupDate).ToList();
 
                 using var wb = new XLWorkbook();
-                var ws = wb.Worksheets.Add("Rezerwacje");
+                var ws = wb.Worksheets.Add("Reservations");
 
                 ws.Cell(1, 1).InsertTable(exportReservations.Select(r => new
                 {
                     r.Id,
-                    Samochód = r.AssetTag,
-                    Kierowca = $"{r.User.FirstName} {r.User.LastName}",
-                    Od = r.PickupDate,
-                    Do = r.ReturnDate,
-                    Cel = r.Destination,
+                    Car = r.AssetTag,
+                    Driver = $"{r.User.FirstName} {r.User.LastName}",
+                    From = r.PickupDate,
+                    To = r.ReturnDate,
+                    Destination = r.Destination,
                     Status = r.Approval.ToString(),
-                    Przebieg_km = r.ReturnMileage
+                    Mileage_km = r.ReturnMileage
                 }));
 
                 ws.Columns().AdjustToContents();
@@ -614,7 +614,7 @@ namespace ReservationApp.Areas.Manager.Controllers
                 return File(
                     stream.ToArray(),
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    $"rezerwacje_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
+                    $"reservations_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
             }
             catch (Exception ex)
             {

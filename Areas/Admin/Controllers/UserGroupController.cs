@@ -145,13 +145,13 @@ namespace ReservationApp.Areas.Admin.Controllers
 
                 await _unitOfWork.Context.SaveChangesAsync();
 
-                TempData["success"] = "Grupa została zapisana.";
+                TempData["success"] = "Group has been saved.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to save user group.");
-                TempData["error"] = "Nie udało się zapisać grupy.";
+                TempData["error"] = "Failed to save the group.";
 
                 await PopulateListsAsync(vm);
                 return View(vm);
@@ -183,7 +183,7 @@ namespace ReservationApp.Areas.Admin.Controllers
 
             await _unitOfWork.Context.SaveChangesAsync();
 
-            TempData["success"] = "Grupa została usunięta.";
+            TempData["success"] = "Group has been deleted.";
             return RedirectToAction(nameof(Index));
         }
 

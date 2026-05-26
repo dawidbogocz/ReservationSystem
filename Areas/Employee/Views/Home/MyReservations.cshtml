@@ -2,12 +2,12 @@
 
 <div class="card shadow border-0 mt-4">
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
-        <h2 class="text-white py-2 text-center">Moje Rezerwacje</h2>
+        <h2 class="text-white py-2 text-center">My Reservations</h2>
     </div>
 
     @if (!Model.Any())
     {
-        <p class="text-center text-secondary">Nie masz jeszcze żadnych rezerwacji.</p>
+        <p class="text-center text-secondary">You don't have any reservations yet.</p>
     }
     else
     {
@@ -16,13 +16,13 @@
                 <table class="table table-striped text-center">
                     <thead>
                         <tr>
-                            <th>Numer Rejestracyjny</th>
-                            <th>Data Odbioru</th>
-                            <th>Data Zwrotu</th>
+                            <th>Registration Number</th>
+                            <th>Pickup Date</th>
+                            <th>Return Date</th>
                             <th>Status</th>
-                            <th>Decyzja</th>
-                            <th>Data Decyzji</th>
-                            <th>Akcje</th>
+                            <th>Approved By</th>
+                            <th>Decision Date</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -37,9 +37,9 @@
                                     @reservation.ReturnDate.ToString("dd-MM-yyyy HH:mm")
                                 </td>
                                 <td>
-                                    <span class="badge @(reservation.Approval == Approval.Zaakceptowane ? "bg-success" :
-                                                    reservation.Approval == Approval.Odrzucone ? "bg-danger" :
-                                                    reservation.Approval == Approval.Anulowana ? "bg-secondary" : "bg-warning")">
+                                    <span class="badge @(reservation.Approval == Approval.Accepted ? "bg-success" :
+                                                    reservation.Approval == Approval.Rejected ? "bg-danger" :
+                                                    reservation.Approval == Approval.Cancelled ? "bg-secondary" : "bg-warning")">
                                         @reservation.Approval.ToString()
                                     </span>
                                 </td>
@@ -48,14 +48,14 @@
                                     @(reservation.ApprovalDate?.ToString("dd-MM-yyyy HH:mm") ?? "-")
                                 </td>
                                 <td>
-                                    @if (reservation.Approval == Approval.Zaakceptowane && DateTime.Now >= reservation.PickupDate && DateTime.Now < reservation.ReturnDate)
+                                    @if (reservation.Approval == Approval.Accepted && DateTime.Now >= reservation.PickupDate && DateTime.Now < reservation.ReturnDate)
                                     {
-                                        <a asp-action="ExtendReservation" asp-route-id="@reservation.Id" class="btn btn-sm btn-primary">Przedłuż</a>
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="endEarlyReservation(@reservation.Id)">Zakończ wcześniej</button>
+                                        <a asp-action="ExtendReservation" asp-route-id="@reservation.Id" class="btn btn-sm btn-primary">Extend</a>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="endEarlyReservation(@reservation.Id)">End early</button>
                                     }
-                                    @if (DateTime.Now < reservation.PickupDate && reservation.Approval != Approval.Anulowana)
+                                    @if (DateTime.Now < reservation.PickupDate && reservation.Approval != Approval.Cancelled)
                                     {
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="openReasonModal(@reservation.Id, 'cancel')">Rezygnuj</button>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="openReasonModal(@reservation.Id, 'cancel')">Cancel</button>
                                     }
                                 </td>
                             </tr>
@@ -73,8 +73,8 @@
         <div class="modal-content">
             <form id="reasonForm">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="reasonModalLabel">Powód</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                    <h5 class="modal-title" id="reasonModalLabel">Reason</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="reservationId" />
@@ -82,30 +82,30 @@
 
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="isDirty">
-                        <label class="form-check-label" for="isDirty">Samochód był brudny</label>
+                        <label class="form-check-label" for="isDirty">The car was dirty</label>
                     </div>
 
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="hasFaults">
-                        <label class="form-check-label" for="hasFaults">Ma usterki</label>
+                        <label class="form-check-label" for="hasFaults">Has faults</label>
                     </div>
                     <div class="mb-3 d-none" id="faultsGroup">
-                        <label for="faultsText" class="form-label">Opis usterki</label>
-                        <input type="text" class="form-control" id="faultsText" placeholder="Wprowadź opis usterki">
+                        <label for="faultsText" class="form-label">Fault description</label>
+                        <input type="text" class="form-control" id="faultsText" placeholder="Enter fault description">
                     </div>
 
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="hasOther">
-                        <label class="form-check-label" for="hasOther">Inny powód</label>
+                        <label class="form-check-label" for="hasOther">Other reason</label>
                     </div>
                     <div class="mb-3 d-none" id="otherGroup">
-                        <label for="otherText" class="form-label">Podaj inny powód</label>
-                        <input type="text" class="form-control" id="otherText" placeholder="Wprowadź powód">
+                        <label for="otherText" class="form-label">Specify other reason</label>
+                        <input type="text" class="form-control" id="otherText" placeholder="Enter reason">
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-danger" id="submitReasonBtn">Potwierdź</button>
+                    <button type="submit" class="btn btn-danger" id="submitReasonBtn">Confirm</button>
                 </div>
             </form>
         </div>
@@ -133,8 +133,8 @@
             $('#reasonForm')[0].reset();
             $('#faultsGroup, #otherGroup').addClass('d-none');
 
-            const modalTitle = actionType === 'cancel' ? 'Powód rezygnacji' : 'Powód wcześniejszego zakończenia';
-            const btnText = actionType === 'cancel' ? 'Rezygnuj' : 'Zakończ';
+            const modalTitle = actionType === 'cancel' ? 'Cancellation reason' : 'Early termination reason';
+            const btnText = actionType === 'cancel' ? 'Cancel' : 'End';
 
             $('#reasonModalLabel').text(modalTitle);
             $('#submitReasonBtn').text(btnText);
@@ -166,21 +166,21 @@
 
             $.post(url, data, function (response) {
                 $('#reasonModal').modal('hide');
-                Swal.fire(response.success ? 'Sukces' : 'Błąd', response.message, response.success ? 'success' : 'error')
+                Swal.fire(response.success ? 'Success' : 'Error', response.message, response.success ? 'success' : 'error')
                     .then(() => location.reload());
             }).fail(function () {
-                Swal.fire('Błąd', 'Coś poszło nie tak.', 'error');
+                Swal.fire('Error', 'Something went wrong.', 'error');
             });
         });
 
         function endEarlyReservation(id) {
             Swal.fire({
-                title: 'Potwierdzenie zakończenia rezerwacji',
-                text: 'Czy na pewno chcesz zakończyć rezerwację wcześniej?',
+                title: 'Confirm end of reservation',
+                text: 'Are you sure you want to end the reservation early?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Tak, zakończ',
-                cancelButtonText: 'Anuluj'
+                confirmButtonText: 'Yes, end it',
+                cancelButtonText: 'Cancel'
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
@@ -188,17 +188,17 @@
                         type: 'POST',
                         success: function (response) {
                             if (response.success) {
-                                Swal.fire('Sukces', response.message, 'success')
+                                Swal.fire('Success', response.message, 'success')
                                 .then(() => {
                                     // Optionally reload the page or update the reservations list
                                     location.reload();
                                 });
                             } else {
-                                Swal.fire('Błąd', response.message, 'error');
+                                Swal.fire('Error', response.message, 'error');
                             }
                         },
                         error: function () {
-                            Swal.fire('Błąd', 'Wystąpił błąd podczas przetwarzania rezerwacji.', 'error');
+                            Swal.fire('Error', 'An error occurred while processing the reservation.', 'error');
                         }
                     });
                 }

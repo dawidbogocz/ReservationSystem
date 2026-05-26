@@ -63,7 +63,7 @@ namespace ReservationApp.Areas.Manager.Controllers
                 var existingAsset = await _unitOfWork.Asset.GetAsync(u => u.AssetTag == obj.Asset.AssetTag && !u.IsDeleted);
                 if (existingAsset != null)
                 {
-                    TempData["error"] = "Samochód o tym numerze rejestracyjnym już istnieje.";
+                    TempData["error"] = "A car with this license plate already exists.";
                     obj.Asset.AssetTag = string.Empty;
                     return View(obj);
                 }
@@ -73,7 +73,7 @@ namespace ReservationApp.Areas.Manager.Controllers
                     obj.Asset.ImageUrl = SaveImage(file);
                     await _unitOfWork.Asset.AddAsync(obj.Asset);
                     _unitOfWork.Save();
-                    TempData["success"] = "Dodano nowy samochód!";
+                    TempData["success"] = "New car added!";
                     return RedirectToAction("Index");
                 }
             }
@@ -134,7 +134,7 @@ namespace ReservationApp.Areas.Manager.Controllers
                     }
                     _unitOfWork.Asset.Update(obj.Asset);
                     _unitOfWork.Save();
-                    TempData["success"] = "Zaktualizowano samochód";
+                    TempData["success"] = "Car updated";
                     return RedirectToAction("Index");
                 }
             }
@@ -157,11 +157,11 @@ namespace ReservationApp.Areas.Manager.Controllers
             try
             {
                 if (string.IsNullOrEmpty(id))
-                    return Json(new { success = false, message = "Nie podano numeru rejestracyjnego." });
+                    return Json(new { success = false, message = "No license plate provided." });
 
                 var asset = await _unitOfWork.Asset.GetAsync(u => u.AssetTag == id && !u.IsDeleted);
                 if (asset == null)
-                    return Json(new { success = false, message = "Nie znaleziono samochodu." });
+                    return Json(new { success = false, message = "Car not found." });
 
                 if (!string.IsNullOrEmpty(asset.ImageUrl))
                     DeleteImage(asset.ImageUrl);
@@ -170,7 +170,7 @@ namespace ReservationApp.Areas.Manager.Controllers
                 _unitOfWork.Asset.Update(asset);
                 _unitOfWork.Save();
 
-                return Json(new { success = true, message = "Samochód usunięty pomyślnie." });
+                return Json(new { success = true, message = "Car deleted successfully." });
             }
             catch (Exception ex)
             {
@@ -188,29 +188,29 @@ namespace ReservationApp.Areas.Manager.Controllers
                     q = q.Where(c => c.Make == make);
 
                 var list = q.OrderBy(c => c.AssetTag).ToList()
-                            .Where(c => (string.IsNullOrWhiteSpace(dirt) || (c.IsDamaged ? "Brudny" : "Czysty") == dirt) &&
-                                        (string.IsNullOrWhiteSpace(vt) || (c.HasTracking ? "Tak" : "Nie") == vt))
+                            .Where(c => (string.IsNullOrWhiteSpace(dirt) || (c.IsDamaged ? "Dirty" : "Clean") == dirt) &&
+                                        (string.IsNullOrWhiteSpace(vt) || (c.HasTracking ? "Yes" : "No") == vt))
                             .Select(c => new
                             {
                                 c.AssetTag,
                                 c.Make,
-                                Typ = c.AssetType.ToString(),
+                                Type = c.AssetType.ToString(),
                                 c.Model,
-                                Przeglad = c.InspectionDate,
-                                Serwis = c.ServiceDate,
-                                Stan = c.IsDamaged ? "Brudny" : "Czysty",
-                                Tracking = c.HasTracking ? "Tak" : "Nie",
+                                Inspection = c.InspectionDate,
+                                Service = c.ServiceDate,
+                                Condition = c.IsDamaged ? "Dirty" : "Clean",
+                                Tracking = c.HasTracking ? "Yes" : "No",
                                 c.Mileage,
-                                Poziom = c.AssetType == AssetType.Car ? $"{c.FuelLevel} %" : $"{c.FuelLevel} % SoC"
+                                Level = c.AssetType == AssetType.Car ? $"{c.FuelLevel} %" : $"{c.FuelLevel} % SoC"
                             });
 
                 using var wb = new ClosedXML.Excel.XLWorkbook();
-                wb.Worksheets.Add("Samochody").FirstCell().InsertTable(list);
+                wb.Worksheets.Add("Cars").FirstCell().InsertTable(list);
                 wb.Worksheet(1).Columns().AdjustToContents();
 
                 using var ms = new MemoryStream();
                 wb.SaveAs(ms); ms.Position = 0;
-                return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"samochody_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
+                return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"cars_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
             }
             catch (Exception ex)
             {

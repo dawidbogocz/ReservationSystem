@@ -2,27 +2,27 @@
 
 <div class="card shadow border-0 mt-4">
     <div class="card-header bg-secondary bg-gradient py-3">
-        <h2 class="text-white text-center">Zarezerwowane Samochody</h2>
+        <h2 class="text-white text-center">Reserved Assets</h2>
     </div>
     <div class="card-body p-4">
         <div class="table-responsive mt-3">
             <table id="reservedCarsTable" class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Numer rejestracyjny</th>
-                        <th>Użytkownik</th>
-                        <th>Telefon</th>
-                        <th>Data od</th>
-                        <th>Data do</th>
+                        <th>Registration number</th>
+                        <th>User</th>
+                        <th>Phone</th>
+                        <th>From date</th>
+                        <th>To date</th>
                         <th>Status</th>
-                        <th>Cel Podróży</th>
+                        <th>Destination</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var car in Model)
                     {
                         foreach (var reservation in car.Reservations.Where(r =>
-                        (r.Approval == Approval.Oczekujace || r.Approval == Approval.Zaakceptowane) && r.ReturnDate > ViewBag.StartDate))
+                        (r.Approval == Approval.Pending || r.Approval == Approval.Accepted) && r.ReturnDate > ViewBag.StartDate))
                         {
                             <tr>
                                 <td>@car.AssetTag</td>
@@ -50,16 +50,16 @@
         $(document).ready(function () {
             $('#reservedCarsTable').DataTable({
                 language: {
-                    lengthMenu: "Pokaż _MENU_ rezerwacji",
-                    zeroRecords: "Brak pasujących rezerwacji",
-                    info: "Pokazano _START_ do _END_ z _TOTAL_ rezerwacji",
-                    infoEmpty: "Brak dostępnych rezerwacji",
-                    search: "Szukaj:",
+                    lengthMenu: "Show _MENU_ reservations",
+                    zeroRecords: "No matching reservations",
+                    info: "Showing _START_ to _END_ of _TOTAL_ reservations",
+                    infoEmpty: "No reservations available",
+                    search: "Search:",
                     paginate: {
-                        first: "Pierwsza",
-                        last: "Ostatnia",
-                        next: "Następna",
-                        previous: "Poprzednia"
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
                     }
                 },
                 responsive: true,

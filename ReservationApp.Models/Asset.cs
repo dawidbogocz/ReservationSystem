@@ -19,42 +19,42 @@ namespace ReservationApp.Models
         /// Gets or sets the unique tag of the car.
         /// </summary>
         [Key]
-        [Required(ErrorMessage = "Numer rejestracji jest wymagany")]
+        [Required(ErrorMessage = "Registration number is required")]
         [MaxLength(30)]
-        [MinLength(5, ErrorMessage = "Numer rejestracji musi mieć przynajmniej {1} znaków")]
+        [MinLength(5, ErrorMessage = "Registration number must be at least {1} characters")]
         public string AssetTag { get; set; }
 
         [Required]
-        [Display(Name = "Typ pojazdu")]
+        [Display(Name = "Asset type")]
         public AssetType AssetType { get; set; } = AssetType.Car;
 
         /// <summary>
-        /// Gets or sets the make (manufacturer) of the car.
+        /// Gets or sets the make (manufacturer) of the asset.
         /// </summary>
-        [Required(ErrorMessage = "Marka jest wymagana")]
+        [Required(ErrorMessage = "Make is required")]
         [MaxLength(30)]
-        [MinLength(2, ErrorMessage = "Marka musi mieć przynajmniej {1} znaki")]
+        [MinLength(2, ErrorMessage = "Make must be at least {1} characters")]
         public string Make { get; set; }
 
         /// <summary>
-        /// Gets or sets the model of the car.
+        /// Gets or sets the model of the asset.
         /// </summary>
-        [Required(ErrorMessage = "Model jest wymagany")]
+        [Required(ErrorMessage = "Model is required")]
         [MaxLength(30)]
-        [MinLength(1, ErrorMessage = "Model musi mieć przynajmniej {1} znak")]
+        [MinLength(1, ErrorMessage = "Model must be at least {1} character")]
         public string Model { get; set; }
 
         /// <summary>
-        /// Gets or sets the inspection date of the car.
+        /// Gets or sets the inspection date of the asset.
         /// </summary>
-        [Required(ErrorMessage = "Data przeglądu jest wymagana")]
+        [Required(ErrorMessage = "Inspection date is required")]
         [DefaultValue("2022-01-01")]
         public DateOnly InspectionDate { get; set; }
 
         /// <summary>
-        /// Gets or sets the service date of the car.
+        /// Gets or sets the service date of the asset.
         /// </summary>
-        [Required(ErrorMessage = "Data serwisu jest wymagana")]
+        [Required(ErrorMessage = "Service date is required")]
         [DefaultValue("2022-01-01")]
         public DateOnly ServiceDate { get; set; }
 
@@ -86,11 +86,11 @@ namespace ReservationApp.Models
         /// </summary>
         public bool HasTracking { get; set; } = false;
 
-        [Display(Name = "Przebieg [km]")]
+        [Display(Name = "Mileage [km]")]
         [Range(0, int.MaxValue)]
         public int Mileage { get; set; } = 0;
 
-        [Display(Name = "Poziom paliwa [%]")]
+        [Display(Name = "Fuel level [%]")]
         [Range(0, 100)]
         public int FuelLevel { get; set; } = 100;
 

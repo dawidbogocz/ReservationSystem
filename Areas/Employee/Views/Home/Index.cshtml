@@ -15,7 +15,7 @@
 }
 
 <div class="container mt-4">
-    <h2 class="text-center mb-4 text-primary">Dostępne Samochody</h2>
+    <h2 class="text-center mb-4 text-primary">Available Assets</h2>
 
     <!-- Date Filter Section -->
     <div class="row justify-content-center mb-4">
@@ -24,12 +24,12 @@
                 <div class="card-body">
                     <form method="get" id="dateFilterForm" class="d-flex align-items-center justify-content-between">
                         <div class="form-group me-3">
-                            <label for="startDate" class="form-label text-secondary">Data początkowa:</label>
+                            <label for="startDate" class="form-label text-secondary">Start date:</label>
                             <input type="datetime-local" id="startDate" name="startDate" class="form-control"
                                    value="@ViewBag.StartDate.ToString("yyyy-MM-ddTHH:mm")" />
                         </div>
                         <div class="form-group me-3">
-                            <label for="endDate" class="form-label text-secondary">Data końcowa:</label>
+                            <label for="endDate" class="form-label text-secondary">End date:</label>
                             <input type="datetime-local" id="endDate" name="endDate" class="form-control"
                                    value="@ViewBag.EndDate.ToString("yyyy-MM-ddTHH:mm")" />
                         </div>
@@ -45,14 +45,14 @@
         {
             /* — rezerwacje — */
             bool hasReservationConflict = car.Reservations.Any(r =>
-            (r.Approval == Approval.Oczekujace || r.Approval == Approval.Zaakceptowane) &&
+            (r.Approval == Approval.Pending || r.Approval == Approval.Accepted) &&
             (r.PickupDate < ViewBag.EndDate && r.ReturnDate > ViewBag.StartDate));
 
             var activeReservation = car.Reservations.FirstOrDefault(r =>
-            (r.Approval == Approval.Oczekujace || r.Approval == Approval.Zaakceptowane) &&
+            (r.Approval == Approval.Pending || r.Approval == Approval.Accepted) &&
             (r.PickupDate < ViewBag.EndDate && r.ReturnDate > ViewBag.StartDate));
 
-            /* — usterki blokujące — */
+            /* — blocking faults — */
             var blockingFaults = car.Faults?.Where(f => !f.IsFixed && !f.IsDrivable).ToList() ?? new();
             bool hasBlockingFaults = blockingFaults.Any();
 
@@ -64,17 +64,17 @@
                     <div class="card-body d-flex flex-column justify-content-between">
                         <div>
                             <h5 class="card-title text-center text-primary">@car.AssetTag</h5>
-                            <p class="text-center text-muted small">Typ: @(car.AssetType == AssetType.Car ? "Samochód" : "Podnośnik")</p>
-                            <p class="text-secondary text-center mb-1"><strong>Marka:</strong> @car.Make</p>
+                            <p class="text-center text-muted small">Type: @(car.AssetType == AssetType.Car ? "Car" : "Lift")</p>
+                            <p class="text-secondary text-center mb-1"><strong>Make:</strong> @car.Make</p>
                             <p class="text-secondary text-center mb-1"><strong>Model:</strong> @car.Model</p>
-                            <p class="text-secondary text-center mb-1"><strong>Przegląd techniczny:</strong> @car.InspectionDate.ToString("dd-MM-yyyy")</p>
-                            <p class="text-secondary text-center mb-1"><strong>Serwis:</strong> @car.ServiceDate.ToString("dd-MM-yyyy")</p>
+                            <p class="text-secondary text-center mb-1"><strong>Inspection:</strong> @car.InspectionDate.ToString("dd-MM-yyyy")</p>
+                            <p class="text-secondary text-center mb-1"><strong>Service:</strong> @car.ServiceDate.ToString("dd-MM-yyyy")</p>
 
-                            <p class="text-secondary text-center mb-1"><strong>Przebieg:</strong> @car.Mileage.ToString("N0") km</p>
+                            <p class="text-secondary text-center mb-1"><strong>Mileage:</strong> @car.Mileage.ToString("N0") km</p>
                             @if (car.AssetType == AssetType.Car)
                             {
                                 <div class="mb-2 text-center">
-                                    <label><strong>Paliwo:</strong></label>
+                                    <label><strong>Fuel:</strong></label>
                                     <div class="progress" style="height:20px;">
                                         <div class="progress-bar @(car.FuelLevel < 25 ? "bg-danger" : car.FuelLevel < 60 ? "bg-warning" : "bg-success")" role="progressbar" style="width:@car.FuelLevel%">
                                             @car.FuelLevel%
@@ -85,7 +85,7 @@
                             else if (car.AssetType == AssetType.Lift)
                             {
                                 <div class="mb-2 text-center">
-                                    <label><strong>Poziom naładowania (SoC):</strong></label>
+                                    <label><strong>Charge level (SoC):</strong></label>
                                     <div class="progress" style="height:20px;">
                                         <div class="progress-bar @(car.FuelLevel < 25 ? "bg-danger" : car.FuelLevel < 60 ? "bg-warning" : "bg-success")" role="progressbar" style="width:@car.FuelLevel%">
                                             @car.FuelLevel%
@@ -94,7 +94,7 @@
                                 </div>
                             }
 
-                            <p class="text-secondary text-center mb-3"><strong>Stan:</strong> @(car.IsDamaged ? "Brudny" : "Czysty")</p>
+                            <p class="text-secondary text-center mb-3"><strong>Condition:</strong> @(car.IsDamaged ? "Dirty" : "Clean")</p>
 
                             @if (car.HasTracking)
                             {
@@ -106,19 +106,19 @@
                             @if (!isAvailable && activeReservation != null)
                             {
                                 <hr />
-                                <p class="text-danger text-center mb-1"><strong>Zarezerwowany przez:</strong></p>
+                                <p class="text-danger text-center mb-1"><strong>Reserved by:</strong></p>
                                 <p class="text-center mb-1">@activeReservation.User.FirstName @activeReservation.User.LastName</p>
                                 <p class="text-center mb-1">📞 @activeReservation.User.PhoneNumber</p>
                                 <p class="text-center small">
-                                    <strong>Od:</strong> @activeReservation.PickupDate.ToString("dd-MM-yyyy HH:mm")<br />
-                                    <strong>Do:</strong> @activeReservation.ReturnDate.ToString("dd-MM-yyyy HH:mm")
+                                    <strong>From:</strong> @activeReservation.PickupDate.ToString("dd-MM-yyyy HH:mm")<br />
+                                    <strong>To:</strong> @activeReservation.ReturnDate.ToString("dd-MM-yyyy HH:mm")
                                 </p>
                             }
 
-                            @* Pokaż tylko usterki, które blokują samochód *@
+                            @* Show only faults that block the asset *@
                             @if (hasBlockingFaults)
                             {
-                                <p class="text-danger text-center mb-1"><strong>Usterki – samochód wyłączony z użytku:</strong></p>
+                                <p class="text-danger text-center mb-1"><strong>Faults – asset disabled:</strong></p>
                                 <ul class="list-unstyled text-center small text-danger">
                                     @foreach (var f in blockingFaults)
                                     {
@@ -137,22 +137,22 @@
                                    asp-route-startDate="@ViewBag.StartDate.ToString("yyyy-MM-ddTHH:mm")"
                                    asp-route-endDate="@ViewBag.EndDate.ToString("yyyy-MM-ddTHH:mm")"
                                    class="btn btn-primary shadow w-100">
-                                    <i class="bi bi-check-all"></i> ZAREZERWUJ
+                                    <i class="bi bi-check-all"></i> RESERVE
                                 </a>
                             </div>
                         }
                         else if (hasBlockingFaults)
                         {
-                            <!-- usterki blokujące -->
+                            <!-- blocking faults -->
                             <div class="text-center mt-2 small text-danger">
-                                Samochód ma usterki, które wyłączają go z użytku
+                                Asset has faults that prevent use
                             </div>
                         }
                         else
                         {
-                            <!-- konflikt rezerwacji -->
+                            <!-- reservation conflict -->
                             <div class="text-center mt-2 small text-muted">
-                                Niedostępny w wybranym czasie
+                                Unavailable in selected time
                             </div>
                         }
 
@@ -185,23 +185,23 @@
 
             if (pendingPickup) {
                 Swal.fire({
-                    title: 'Opinia przy odbiorze',
-                    text: 'Masz rezerwację, dla której nie podałeś opinii przy odbiorze. Czy chcesz teraz uzupełnić ten feedback?',
+                    title: 'Pickup feedback',
+                    text: 'You have a reservation without pickup feedback. Would you like to provide it now?',
                     icon: 'info',
                     showCancelButton: true,
-                    confirmButtonText: 'Tak, podaj opinię',
-                    cancelButtonText: 'Pomiń'
+                    confirmButtonText: 'Yes, give feedback',
+                    cancelButtonText: 'Skip'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.location.href = '@Url.Action("PickupFeedback", "Home", new { reservationId = ViewBag.PendingPickupReservationId })';
                     } else if (pendingReturn) {
                         Swal.fire({
-                            title: 'Opinia przy zwrocie',
-                            text: 'Masz rezerwację, dla której nie podałeś opinii przy zwrocie. Czy chcesz teraz uzupełnić ten feedback?',
+                            title: 'Return feedback',
+                            text: 'You have a reservation without return feedback. Would you like to provide it now?',
                             icon: 'info',
                             showCancelButton: true,
-                            confirmButtonText: 'Tak, podaj opinię',
-                            cancelButtonText: 'Pomiń'
+                            confirmButtonText: 'Yes, give feedback',
+                            cancelButtonText: 'Skip'
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 window.location.href = '@Url.Action("ReturnFeedback", "Home", new { reservationId = ViewBag.PendingReturnReservationId })';
@@ -212,12 +212,12 @@
             }
             else if (pendingReturn) {
                 Swal.fire({
-                    title: 'Opinia przy zwrocie',
-                    text: 'Masz rezerwację, dla której nie podałeś opinii przy zwrocie. Czy chcesz teraz uzupełnić ten feedback?',
+                    title: 'Return feedback',
+                    text: 'You have a reservation without return feedback. Would you like to provide it now?',
                     icon: 'info',
                     showCancelButton: true,
-                    confirmButtonText: 'Tak, podaj opinię',
-                    cancelButtonText: 'Pomiń'
+                    confirmButtonText: 'Yes, give feedback',
+                    cancelButtonText: 'Skip'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.location.href = '@Url.Action("ReturnFeedback", "Home", new { reservationId = ViewBag.PendingReturnReservationId })';

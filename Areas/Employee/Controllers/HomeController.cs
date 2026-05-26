@@ -44,14 +44,14 @@ namespace ReservationApp.Areas.Employee.Controllers
         }
 
         /// <summary>
-        /// Returns the correct Polish word forms for the given vehicle type
-        /// (mianownik, dopełniacz, narzędnik).
+        /// Returns the correct English noun for the given vehicle type
+        /// (singular form).
         /// </summary>
-        private (string mianownik, string dopełniacz, string narzędnik) GetVehicleWord(AssetType type)
+        private (string nominative, string genitive, string instrumental) GetVehicleWord(AssetType type)
         {
             return type == AssetType.Lift
-                ? ("podnośnik", "podnośnika", "podnośnikiem")
-                : ("samochód", "samochodu", "samochodem");
+                ? ("lift", "lift", "lift")
+                : ("car", "car", "car");
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace ReservationApp.Areas.Employee.Controllers
 
                 var upcomingReservations = (await _unitOfWork.Reservation.GetAllAsync(null, "Asset"))
                     .Where(r => r.UserId == userId
-                                && r.Approval == Approval.Zaakceptowane
+                                && r.Approval == Approval.Accepted
                                 && r.PickupDate > DateTime.Now
                                 && r.PickupDate <= DateTime.Now.AddDays(2))
                     .ToList();
@@ -81,21 +81,21 @@ namespace ReservationApp.Areas.Employee.Controllers
                 foreach (var reservation in upcomingReservations)
                 {
                     var words = GetVehicleWord(reservation.Asset.AssetType);
-                    reminders.Add($"Przypomnienie: Masz rezerwację {words.dopełniacz} {reservation.AssetTag} w dniu {reservation.PickupDate:dd-MM-yyyy HH:mm}");
+                    reminders.Add($"Reminder: You have a reservation of {words.genitive} {reservation.AssetTag} on {reservation.PickupDate:dd-MM-yyyy HH:mm}");
                 }
 
                 ViewBag.ReminderNotifications = reminders;
 
                 var pendingPickup = (await _unitOfWork.Reservation.GetAllAsync(r => r.Asset.IsDeleted == false, "Asset"))
                     .FirstOrDefault(r => r.UserId == userId
-                        && r.Approval == Approval.Zaakceptowane
+                        && r.Approval == Approval.Accepted
                         && DateTime.Now >= r.PickupDate
                         && r.IsCarDirtyAtPickup == null
                         && DateTime.Now < r.ReturnDate);
 
                 var pendingReturn = (await _unitOfWork.Reservation.GetAllAsync(r => r.Asset.IsDeleted == false, "Asset"))
                     .FirstOrDefault(r => r.UserId == userId
-                        && r.Approval == Approval.Zaakceptowane
+                        && r.Approval == Approval.Accepted
                         && DateTime.Now >= r.ReturnDate
                         && r.IsCarDirtyAtReturn == null);
 
@@ -134,7 +134,7 @@ namespace ReservationApp.Areas.Employee.Controllers
 
                 if (car == null)
                 {
-                    TempData["error"] = "Pojazd nie został znaleziony!";
+                    TempData["error"] = "Vehicle not found!";
                     return RedirectToAction("Index");
                 }
 
@@ -182,7 +182,7 @@ namespace ReservationApp.Areas.Employee.Controllers
                 var car = await _unitOfWork.Asset.GetAsync(c => c.AssetTag == obj.Reservation.AssetTag);
                 if (car == null)
                 {
-                    TempData["error"] = "Pojazd nie został znaleziony!";
+                    TempData["error"] = "Vehicle not found!";
                     obj.AssetList = await GetCarSelectListAsync();
                     return View(obj);
                 }
@@ -191,12 +191,12 @@ namespace ReservationApp.Areas.Employee.Controllers
 
                 if (!obj.Reservation.AcceptStatute)
                 {
-                    ModelState.AddModelError("AcceptStatute", $"Musisz zaakceptować regulamin przed rezerwacją {words.dopełniacz}.");
+                    ModelState.AddModelError("AcceptStatute", $"You must accept the terms before reserving the {words.genitive}.");
                 }
 
                 if (!ModelState.IsValid)
                 {
-                    TempData["error"] = "Wystąpił błąd podczas tworzenia rezerwacji.";
+                    TempData["error"] = "An error occurred while creating the reservation.";
                     obj.AssetList = await GetCarSelectListAsync();
                     return View(obj);
                 }
@@ -209,38 +209,38 @@ namespace ReservationApp.Areas.Employee.Controllers
 
                     bool conflictExists = allReservations.Any(r =>
                         r.AssetTag == obj.Reservation.AssetTag &&
-                        (r.Approval == Approval.Oczekujace || r.Approval == Approval.Zaakceptowane) &&
+                        (r.Approval == Approval.Pending || r.Approval == Approval.Accepted) &&
                         r.PickupDate < obj.Reservation.ReturnDate &&
                         r.ReturnDate > obj.Reservation.PickupDate);
 
                     if (conflictExists)
                     {
-                        TempData["error"] = $"{words.mianownik.Capitalize()} został zarezerwowany podczas wypełniania formularza. Proszę wybrać inne daty lub inny {words.mianownik}.";
+                        TempData["error"] = $"{words.nominative.Capitalize()} was reserved while filling the form. Please choose different dates or another {words.nominative}.";
                         transaction.Rollback();
                         return RedirectToAction("Index");
                     }
 
-                    obj.Reservation.Approval = Approval.Oczekujace;
+                    obj.Reservation.Approval = Approval.Pending;
                     await _unitOfWork.Reservation.AddAsync(obj.Reservation);
                     _unitOfWork.Save();
 
                     transaction.Commit();
                 }
 
-                TempData["success"] = "Rezerwacja została pomyślnie utworzona!";
+                TempData["success"] = "Reservation created successfully!";
 
                 var user = await _unitOfWork.ApplicationUser.GetAsync(u => u.Id == obj.Reservation.UserId);
                 var myReservationsLink = _config["ReservationLinks:MyReservations"];
 
                 if (user != null && !string.IsNullOrWhiteSpace(user.Email))
                 {
-                    string userSubject = "Twoja rezerwacja została wysłana do zatwierdzenia";
+                    string userSubject = "Your reservation has been sent for approval";
 
                     string userBody =
-                        $"Witaj {user.FirstName},<br/><br/>" +
-                        $"Twoja rezerwacja pojazdu <strong>{obj.Reservation.AssetTag}</strong> została wysłana do zatwierdzenia.<br/>" +
-                        $"Otrzymasz powiadomienie, gdy rezerwacja zostanie zaakceptowana lub odrzucona.<br/><br/>" +
-                        $"Możesz śledzić jej status <a href='{myReservationsLink}'>tutaj</a>.";
+                        $"Hello {user.FirstName},<br/><br/>" +
+                        $"Your reservation for vehicle <strong>{obj.Reservation.AssetTag}</strong> has been sent for approval.<br/>" +
+                        $"You will receive a notification when the reservation is accepted or rejected.<br/><br/>" +
+                        $"You can track its status <a href='{myReservationsLink}'>here</a>.";
 
                     await _emailSender.SendEmailAsync(user.Email, userSubject, userBody);
                 }
@@ -251,21 +251,21 @@ namespace ReservationApp.Areas.Employee.Controllers
                     new { area = "Manager", reservationId = obj.Reservation.Id },
                     Request.Scheme) ?? _config["ReservationLinks:ManagerApproval"];
 
-                string managerSubject = $"Nowa rezerwacja do zatwierdzenia #{obj.Reservation.Id}";
+                string managerSubject = $"New reservation for approval #{obj.Reservation.Id}";
 
                 string managerBody =
-                    $"Dzień dobry,<br/><br/>" +
-                    $"Pojawiła się nowa rezerwacja do zatwierdzenia.<br/><br/>" +
+                    $"Hello,<br/><br/>" +
+                    $"A new reservation has been submitted for approval.<br/><br/>" +
                     "<ul>" +
-                    $"<li><strong>ID rezerwacji:</strong> {obj.Reservation.Id}</li>" +
-                    $"<li><strong>Pojazd:</strong> {obj.Reservation.AssetTag}</li>" +
-                    $"<li><strong>Użytkownik:</strong> {user?.FirstName} {user?.LastName}</li>" +
-                    $"<li><strong>Email użytkownika:</strong> {user?.Email}</li>" +
-                    $"<li><strong>Data odbioru:</strong> {obj.Reservation.PickupDate:dd-MM-yyyy HH:mm}</li>" +
-                    $"<li><strong>Data zwrotu:</strong> {obj.Reservation.ReturnDate:dd-MM-yyyy HH:mm}</li>" +
-                    $"<li><strong>Cel:</strong> {(string.IsNullOrWhiteSpace(obj.Reservation.Destination) ? "Nie podano" : obj.Reservation.Destination)}</li>" +
+                    $"<li><strong>Reservation ID:</strong> {obj.Reservation.Id}</li>" +
+                    $"<li><strong>Vehicle:</strong> {obj.Reservation.AssetTag}</li>" +
+                    $"<li><strong>User:</strong> {user?.FirstName} {user?.LastName}</li>" +
+                    $"<li><strong>User email:</strong> {user?.Email}</li>" +
+                    $"<li><strong>Pickup date:</strong> {obj.Reservation.PickupDate:dd-MM-yyyy HH:mm}</li>" +
+                    $"<li><strong>Return date:</strong> {obj.Reservation.ReturnDate:dd-MM-yyyy HH:mm}</li>" +
+                    $"<li><strong>Destination:</strong> {(string.IsNullOrWhiteSpace(obj.Reservation.Destination) ? "Not provided" : obj.Reservation.Destination)}</li>" +
                     "</ul>" +
-                    $"<a href='{approvalLink}'>Otwórz rezerwację #{obj.Reservation.Id}</a>";
+                    $"<a href='{approvalLink}'>Open reservation #{obj.Reservation.Id}</a>";
 
                 await _departmentNotifications.SendToGroupManagersAndAdminsAsync(
                     obj.Reservation.UserId,
@@ -301,13 +301,13 @@ namespace ReservationApp.Areas.Employee.Controllers
                 var reservation = await GetOwnReservationAsync(id, includeProperties: "Asset");
                 if (reservation == null)
                 {
-                    TempData["error"] = "Nie znaleziono rezerwacji.";
+                    TempData["error"] = "Reservation not found.";
                     return RedirectToAction("MyReservations");
                 }
 
                 if (DateTime.Now > reservation.ReturnDate)
                 {
-                    TempData["error"] = "Nie można przedłużyć rezerwacji po jej zakończeniu.";
+                    TempData["error"] = "Cannot extend a reservation after it has ended.";
                     return RedirectToAction("MyReservations");
                 }
 
@@ -331,26 +331,26 @@ namespace ReservationApp.Areas.Employee.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    TempData["error"] = "Wystąpił błąd. Sprawdź poprawność wprowadzonych danych.";
+                    TempData["error"] = "An error occurred. Please check the entered data.";
                     return View(vm);
                 }
 
                 var reservation = await GetOwnReservationAsync(vm.Reservation.Id, includeProperties: "Asset,User");
                 if (reservation == null)
                 {
-                    TempData["error"] = "Nie znaleziono rezerwacji.";
+                    TempData["error"] = "Reservation not found.";
                     return RedirectToAction("MyReservations");
                 }
 
                 if (vm.Reservation.ReturnDate <= reservation.ReturnDate)
                 {
-                    TempData["error"] = "Nowa data zwrotu musi być późniejsza niż aktualna.";
+                    TempData["error"] = "The new return date must be later than the current one.";
                     return View(vm);
                 }
 
                 if (DateTime.Now > reservation.ReturnDate)
                 {
-                    TempData["error"] = "Nie można przedłużyć rezerwacji po jej zakończeniu.";
+                    TempData["error"] = "Cannot extend a reservation after it has ended.";
                     return RedirectToAction("MyReservations");
                 }
 
@@ -361,19 +361,19 @@ namespace ReservationApp.Areas.Employee.Controllers
                     bool conflictExists = allReservations.Any(r =>
                         r.AssetTag == reservation.AssetTag &&
                         r.Id != reservation.Id &&
-                        (r.Approval == Approval.Oczekujace || r.Approval == Approval.Zaakceptowane) &&
+                        (r.Approval == Approval.Pending || r.Approval == Approval.Accepted) &&
                         r.PickupDate < vm.Reservation.ReturnDate &&
                         r.ReturnDate > reservation.ReturnDate);
 
                     if (conflictExists)
                     {
-                        TempData["error"] = "Nie można przedłużyć rezerwacji, samochód jest zarezerwowany w wybranym przedziale czasowym.";
+                        TempData["error"] = "Cannot extend the reservation, the car is reserved in the selected time period.";
                         transaction.Rollback();
                         return RedirectToAction("MyReservations");
                     }
 
                     reservation.ReturnDate = vm.Reservation.ReturnDate;
-                    reservation.Approval = Approval.Oczekujace;
+                    reservation.Approval = Approval.Pending;
 
                     _unitOfWork.Reservation.Update(reservation);
                     _unitOfWork.Save();
@@ -381,14 +381,14 @@ namespace ReservationApp.Areas.Employee.Controllers
                     transaction.Commit();
                 }
 
-                string subject = $"Przedłużenie rezerwacji do zatwierdzenia #{reservation.Id}";
+                string subject = $"Reservation extension for approval #{reservation.Id}";
                 string body =
-                    $"Dzień dobry,<br/><br/>" +
-                    $"Użytkownik <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> przedłużył rezerwację i wymaga ona ponownego zatwierdzenia.<br/><br/>" +
+                    $"Hello,<br/><br/>" +
+                    $"User <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> has extended a reservation and it requires re-approval.<br/><br/>" +
                     "<ul>" +
-                    $"<li><strong>ID rezerwacji:</strong> {reservation.Id}</li>" +
-                    $"<li><strong>Pojazd:</strong> {reservation.AssetTag}</li>" +
-                    $"<li><strong>Nowa data zwrotu:</strong> {reservation.ReturnDate:dd-MM-yyyy HH:mm}</li>" +
+                    $"<li><strong>Reservation ID:</strong> {reservation.Id}</li>" +
+                    $"<li><strong>Vehicle:</strong> {reservation.AssetTag}</li>" +
+                    $"<li><strong>New return date:</strong> {reservation.ReturnDate:dd-MM-yyyy HH:mm}</li>" +
                     "</ul>";
 
                 await _departmentNotifications.SendToGroupManagersAndAdminsAsync(
@@ -396,7 +396,7 @@ namespace ReservationApp.Areas.Employee.Controllers
                     subject,
                     body);
 
-                TempData["success"] = "Rezerwacja została pomyślnie przedłużona!";
+                TempData["success"] = "Reservation has been successfully extended!";
                 return RedirectToAction("MyReservations");
             }
             catch (Exception ex)
@@ -417,24 +417,24 @@ namespace ReservationApp.Areas.Employee.Controllers
             {
                 var reservation = await GetOwnReservationAsync(id, includeProperties: "Asset,User");
                 if (reservation == null)
-                    return Json(new { success = false, message = "Nie znaleziono rezerwacji." });
+                    return Json(new { success = false, message = "Reservation not found." });
 
                 if (DateTime.Now < reservation.PickupDate || DateTime.Now >= reservation.ReturnDate)
-                    return Json(new { success = false, message = "Rezerwacja nie jest aktualnie aktywna i nie może być zakończona wcześniej." });
+                    return Json(new { success = false, message = "The reservation is not currently active and cannot be ended early." });
 
                 reservation.ReturnDate = DateTime.Now;
 
                 _unitOfWork.Reservation.Update(reservation);
                 _unitOfWork.Save();
 
-                string subject = $"Rezerwacja zakończona wcześniej #{reservation.Id}";
+                string subject = $"Reservation ended early #{reservation.Id}";
                 string body =
-                    $"Dzień dobry,<br/><br/>" +
-                    $"Użytkownik <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> zakończył rezerwację wcześniej.<br/><br/>" +
+                    $"Hello,<br/><br/>" +
+                    $"User <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> has ended a reservation early.<br/><br/>" +
                     "<ul>" +
-                    $"<li><strong>ID rezerwacji:</strong> {reservation.Id}</li>" +
-                    $"<li><strong>Pojazd:</strong> {reservation.AssetTag}</li>" +
-                    $"<li><strong>Nowa data zwrotu:</strong> {reservation.ReturnDate:dd-MM-yyyy HH:mm}</li>" +
+                    $"<li><strong>Reservation ID:</strong> {reservation.Id}</li>" +
+                    $"<li><strong>Vehicle:</strong> {reservation.AssetTag}</li>" +
+                    $"<li><strong>New return date:</strong> {reservation.ReturnDate:dd-MM-yyyy HH:mm}</li>" +
                     "</ul>";
 
                 await _departmentNotifications.SendToGroupManagersAndAdminsAsync(
@@ -442,7 +442,7 @@ namespace ReservationApp.Areas.Employee.Controllers
                     subject,
                     body);
 
-                return Json(new { success = true, message = "Rezerwacja została zakończona wcześniej." });
+                return Json(new { success = true, message = "Reservation has been ended early." });
             }
             catch (Exception ex)
             {
@@ -482,9 +482,9 @@ namespace ReservationApp.Areas.Employee.Controllers
                 var reservation = await GetOwnReservationAsync(id, includeProperties: "Asset,User");
 
                 if (reservation == null || DateTime.Now >= reservation.PickupDate)
-                    return Json(new { success = false, message = "Rezerwacja nie może być anulowana." });
+                    return Json(new { success = false, message = "Reservation cannot be cancelled." });
 
-                reservation.Approval = Approval.Anulowana;
+                reservation.Approval = Approval.Cancelled;
 
                 var car = reservation.Asset;
 
@@ -510,29 +510,29 @@ namespace ReservationApp.Areas.Employee.Controllers
                 var notes = new List<string>();
 
                 if (isCarDirty)
-                    notes.Add("Użytkownik zgłosił, że samochód był brudny");
+                    notes.Add("User reported that the car was dirty");
 
                 if (hasFaults && !string.IsNullOrWhiteSpace(faultsDescription))
-                    notes.Add($"Usterki: {faultsDescription}");
+                    notes.Add($"Faults: {faultsDescription}");
 
                 if (!string.IsNullOrWhiteSpace(otherReason))
-                    notes.Add($"Inny powód: {otherReason}");
+                    notes.Add($"Other reason: {otherReason}");
 
                 reservation.Note = string.Join(" | ", notes);
 
                 _unitOfWork.Reservation.Update(reservation);
                 _unitOfWork.Save();
 
-                string subject = $"Rezerwacja anulowana #{reservation.Id}";
+                string subject = $"Reservation cancelled #{reservation.Id}";
                 string body =
-                    $"Dzień dobry,<br/><br/>" +
-                    $"Użytkownik <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> anulował rezerwację.<br/><br/>" +
+                    $"Hello,<br/><br/>" +
+                    $"User <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> has cancelled a reservation.<br/><br/>" +
                     "<ul>" +
-                    $"<li><strong>ID rezerwacji:</strong> {reservation.Id}</li>" +
-                    $"<li><strong>Pojazd:</strong> {reservation.AssetTag}</li>" +
-                    $"<li><strong>Od:</strong> {reservation.PickupDate:dd-MM-yyyy HH:mm}</li>" +
-                    $"<li><strong>Do:</strong> {reservation.ReturnDate:dd-MM-yyyy HH:mm}</li>" +
-                    $"<li><strong>Notatka:</strong> {(string.IsNullOrWhiteSpace(reservation.Note) ? "Brak" : reservation.Note)}</li>" +
+                    $"<li><strong>Reservation ID:</strong> {reservation.Id}</li>" +
+                    $"<li><strong>Vehicle:</strong> {reservation.AssetTag}</li>" +
+                    $"<li><strong>From:</strong> {reservation.PickupDate:dd-MM-yyyy HH:mm}</li>" +
+                    $"<li><strong>To:</strong> {reservation.ReturnDate:dd-MM-yyyy HH:mm}</li>" +
+                    $"<li><strong>Note:</strong> {(string.IsNullOrWhiteSpace(reservation.Note) ? "None" : reservation.Note)}</li>" +
                     "</ul>";
 
                 await _departmentNotifications.SendToGroupManagersAndAdminsAsync(
@@ -540,7 +540,7 @@ namespace ReservationApp.Areas.Employee.Controllers
                     subject,
                     body);
 
-                return Json(new { success = true, message = "Rezerwacja została anulowana." });
+                return Json(new { success = true, message = "Reservation has been cancelled." });
             }
             catch (Exception ex)
             {
@@ -581,13 +581,13 @@ namespace ReservationApp.Areas.Employee.Controllers
                 var reservation = await GetOwnReservationAsync(reservationId, includeProperties: "Asset,User");
                 if (reservation == null)
                 {
-                    TempData["error"] = "Rezerwacja nie została znaleziona.";
+                    TempData["error"] = "Reservation not found.";
                     return RedirectToAction("MyReservations");
                 }
 
                 if (DateTime.Now > reservation.ReturnDate)
                 {
-                    TempData["error"] = "Rezerwacja już się zakończyła. Feedback przy odbiorze nie jest już możliwy.";
+                    TempData["error"] = "The reservation has already ended. Pickup feedback is no longer possible.";
                     return RedirectToAction("MyReservations");
                 }
 
@@ -614,7 +614,7 @@ namespace ReservationApp.Areas.Employee.Controllers
                 var reservation = await GetOwnReservationAsync(reservationId, includeProperties: "Asset,User");
                 if (reservation == null)
                 {
-                    TempData["error"] = "Nie znaleziono rezerwacji.";
+                    TempData["error"] = "Reservation not found.";
                     return RedirectToAction("MyReservations");
                 }
 
@@ -630,8 +630,8 @@ namespace ReservationApp.Areas.Employee.Controllers
                 if (previousReturn != null && pickupMileage < previousReturn.ReturnMileage!.Value - 50)
                 {
                     TempData["error"] =
-                        $"Przebieg przy odbiorze ({pickupMileage:N0} km) jest o ponad 50 km mniejszy niż " +
-                        $"ostatni przebieg przy zwrocie ({previousReturn.ReturnMileage:N0} km).";
+                        $"Pickup mileage ({pickupMileage:N0} km) is over 50 km less than " +
+                        $"the last return mileage ({previousReturn.ReturnMileage:N0} km).";
 
                     return RedirectToAction("PickupFeedback", new { reservationId });
                 }
@@ -642,17 +642,17 @@ namespace ReservationApp.Areas.Employee.Controllers
                 {
                     string link = string.Format(_config["ReservationLinks:CarEdit"], car.AssetTag);
 
-                    string subject = $"[ALERT] Rozbieżność przebiegu – {car.AssetTag}";
+                    string subject = $"[ALERT] Mileage discrepancy – {car.AssetTag}";
                     string body =
-                        "Dzień dobry,<br/><br/>" +
-                        $"Dla pojazdu <strong>{car.AssetTag}</strong> zarejestrowano rozbieżność przebiegu większą niż ±10 km.<br/><br/>" +
+                        "Hello,<br/><br/>" +
+                        $"For vehicle <strong>{car.AssetTag}</strong> a mileage discrepancy greater than ±10 km was recorded.<br/><br/>" +
                         "<ul>" +
-                        $"<li><strong>Poprzedni zapisany przebieg:</strong> {car.Mileage:N0} km</li>" +
-                        $"<li><strong>Przebieg podany przy odbiorze:</strong> {pickupMileage:N0} km</li>" +
-                        $"<li><strong>Różnica:</strong> {diff:N0} km</li>" +
-                        $"<li><strong>Kierowca:</strong> {reservation.User?.FirstName} {reservation.User?.LastName}</li>" +
+                        $"<li><strong>Previous recorded mileage:</strong> {car.Mileage:N0} km</li>" +
+                        $"<li><strong>Mileage provided at pickup:</strong> {pickupMileage:N0} km</li>" +
+                        $"<li><strong>Difference:</strong> {diff:N0} km</li>" +
+                        $"<li><strong>Driver:</strong> {reservation.User?.FirstName} {reservation.User?.LastName}</li>" +
                         "</ul>" +
-                        $"Prosimy o weryfikację i ewentualną korektę w systemie: <a href=\"{link}\">Edycja pojazdu</a>";
+                        $"Please verify and correct if necessary in the system: <a href=\"{link}\">Edit vehicle</a>";
 
                     await _departmentNotifications.SendToGroupManagersAndAdminsAsync(
                         reservation.UserId,
@@ -676,7 +676,7 @@ namespace ReservationApp.Areas.Employee.Controllers
                     {
                         AssetTag = car.AssetTag,
                         UserId = reservation.UserId,
-                        Description = string.IsNullOrWhiteSpace(faults) ? "(brak opisu)" : faults.Trim(),
+                        Description = string.IsNullOrWhiteSpace(faults) ? "(no description)" : faults.Trim(),
                         DateReported = DateTime.Now,
                         IsFixed = false,
                         IsDrivable = false
@@ -696,16 +696,16 @@ namespace ReservationApp.Areas.Employee.Controllers
 
                 if (isCarDirty || hasFaults)
                 {
-                    string subject = $"Zgłoszenie przy odbiorze pojazdu #{reservation.Id}";
+                    string subject = $"Pickup issue report #{reservation.Id}";
                     string body =
-                        $"Dzień dobry,<br/><br/>" +
-                        $"Użytkownik <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> zgłosił problem przy odbiorze pojazdu.<br/><br/>" +
+                        $"Hello,<br/><br/>" +
+                        $"User <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> reported an issue during vehicle pickup.<br/><br/>" +
                         "<ul>" +
-                        $"<li><strong>ID rezerwacji:</strong> {reservation.Id}</li>" +
-                        $"<li><strong>Pojazd:</strong> {reservation.AssetTag}</li>" +
-                        $"<li><strong>Brudny pojazd:</strong> {(isCarDirty ? "Tak" : "Nie")}</li>" +
-                        $"<li><strong>Usterki:</strong> {(hasFaults ? (string.IsNullOrWhiteSpace(faults) ? "(brak opisu)" : faults) : "Nie")}</li>" +
-                        $"<li><strong>Przebieg:</strong> {pickupMileage:N0} km</li>" +
+                        $"<li><strong>Reservation ID:</strong> {reservation.Id}</li>" +
+                        $"<li><strong>Vehicle:</strong> {reservation.AssetTag}</li>" +
+                        $"<li><strong>Dirty vehicle:</strong> {(isCarDirty ? "Yes" : "No")}</li>" +
+                        $"<li><strong>Faults:</strong> {(hasFaults ? (string.IsNullOrWhiteSpace(faults) ? "(no description)" : faults) : "No")}</li>" +
+                        $"<li><strong>Mileage:</strong> {pickupMileage:N0} km</li>" +
                         "</ul>";
 
                     await _departmentNotifications.SendToGroupManagersAndAdminsAsync(
@@ -716,7 +716,7 @@ namespace ReservationApp.Areas.Employee.Controllers
 
                 await _reservationService.CheckAndSendFeedbackReminders();
 
-                TempData["success"] = "Feedback przy odbiorze zapisany.";
+                TempData["success"] = "Pickup feedback saved.";
                 return RedirectToAction("MyReservations");
             }
             catch (Exception ex)
@@ -738,13 +738,13 @@ namespace ReservationApp.Areas.Employee.Controllers
                 var reservation = await GetOwnReservationAsync(reservationId, includeProperties: "Asset,User");
                 if (reservation == null)
                 {
-                    TempData["error"] = "Rezerwacja nie została znaleziona.";
+                    TempData["error"] = "Reservation not found.";
                     return RedirectToAction("MyReservations");
                 }
 
                 if (DateTime.Now < reservation.ReturnDate)
                 {
-                    TempData["error"] = "Rezerwacja jeszcze się nie zakończyła.";
+                    TempData["error"] = "The reservation has not ended yet.";
                     return RedirectToAction("MyReservations");
                 }
 
@@ -771,21 +771,21 @@ namespace ReservationApp.Areas.Employee.Controllers
                 var reservation = await GetOwnReservationAsync(reservationId, includeProperties: "Asset,User");
                 if (reservation == null)
                 {
-                    TempData["error"] = "Nie znaleziono rezerwacji.";
+                    TempData["error"] = "Reservation not found.";
                     return RedirectToAction("MyReservations");
                 }
 
                 if (reservation.PickupMileage.HasValue && returnMileage < reservation.PickupMileage.Value)
                 {
                     TempData["error"] =
-                        $"Przebieg przy zwrocie ({returnMileage:N0} km) nie może być mniejszy niż przy odbiorze ({reservation.PickupMileage:N0} km).";
+                        $"Return mileage ({returnMileage:N0} km) cannot be less than pickup mileage ({reservation.PickupMileage:N0} km).";
                     return RedirectToAction("ReturnFeedback", new { reservationId });
                 }
 
                 var car = reservation.Asset;
                 if (car == null)
                 {
-                    TempData["error"] = "Nie znaleziono pojazdu.";
+TempData["error"] = "Reservation not found.";
                     return RedirectToAction("MyReservations");
                 }
 
@@ -808,7 +808,7 @@ namespace ReservationApp.Areas.Employee.Controllers
                     {
                         AssetTag = car.AssetTag,
                         UserId = reservation.UserId,
-                        Description = string.IsNullOrWhiteSpace(faults) ? "(brak opisu)" : faults.Trim(),
+                        Description = string.IsNullOrWhiteSpace(faults) ? "(no description)" : faults.Trim(),
                         DateReported = DateTime.Now,
                         IsFixed = false,
                         IsDrivable = false
@@ -828,17 +828,17 @@ namespace ReservationApp.Areas.Employee.Controllers
 
                 if (isCarDirty || hasFaults)
                 {
-                    string subject = $"Zgłoszenie przy zwrocie pojazdu #{reservation.Id}";
+                    string subject = $"Return report for vehicle #{reservation.Id}";
                     string body =
-                        $"Dzień dobry,<br/><br/>" +
-                        $"Użytkownik <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> zgłosił problem przy zwrocie pojazdu.<br/><br/>" +
+                        $"Hello,<br/><br/>" +
+                        $"User <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> reported an issue during vehicle return.<br/><br/>" +
                         "<ul>" +
-                        $"<li><strong>ID rezerwacji:</strong> {reservation.Id}</li>" +
-                        $"<li><strong>Pojazd:</strong> {reservation.AssetTag}</li>" +
-                        $"<li><strong>Brudny pojazd:</strong> {(isCarDirty ? "Tak" : "Nie")}</li>" +
-                        $"<li><strong>Usterki:</strong> {(hasFaults ? (string.IsNullOrWhiteSpace(faults) ? "(brak opisu)" : faults) : "Nie")}</li>" +
-                        $"<li><strong>Przebieg:</strong> {returnMileage:N0} km</li>" +
-                        $"<li><strong>Poziom paliwa:</strong> {fuelLevel}%</li>" +
+                        $"<li><strong>Reservation ID:</strong> {reservation.Id}</li>" +
+                        $"<li><strong>Vehicle:</strong> {reservation.AssetTag}</li>" +
+                        $"<li><strong>Dirty vehicle:</strong> {(isCarDirty ? "Yes" : "No")}</li>" +
+                        $"<li><strong>Faults:</strong> {(hasFaults ? (string.IsNullOrWhiteSpace(faults) ? "(no description)" : faults) : "No")}</li>" +
+                        $"<li><strong>Mileage:</strong> {returnMileage:N0} km</li>" +
+                        $"<li><strong>Fuel level:</strong> {fuelLevel}%</li>" +
                         "</ul>";
 
                     await _departmentNotifications.SendToGroupManagersAndAdminsAsync(
@@ -849,7 +849,7 @@ namespace ReservationApp.Areas.Employee.Controllers
 
                 await _reservationService.CheckAndSendFeedbackReminders();
 
-                TempData["success"] = "Feedback przy zwrocie zapisany.";
+                TempData["success"] = "Return feedback saved.";
                 return RedirectToAction("MyReservations");
             }
             catch (Exception ex)
