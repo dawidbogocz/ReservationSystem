@@ -31,7 +31,7 @@ namespace ReservationApp.Areas.Manager.Controllers
             try
             {
                 var faults = (await _unitOfWork.Fault.GetAllAsync(null, "User")).OrderByDescending(f => f.Id).ToList();
-                ViewBag.CarPlates = faults.Select(f => f.AssetTag).Distinct().OrderBy(p => p).ToList();
+                ViewBag.AssetTags = faults.Select(f => f.AssetTag).Distinct().OrderBy(p => p).ToList();
                 ViewBag.Users = faults.Select(f => f.User.FirstName + " " + f.User.LastName).Distinct().OrderBy(u => u).ToList();
                 return View(faults);
             }
@@ -155,7 +155,7 @@ namespace ReservationApp.Areas.Manager.Controllers
             if (faultVM.Fault.IsDrivable && string.IsNullOrWhiteSpace(faultVM.Fault.DrivableComment))
             {
                 ModelState.AddModelError("Fault.DrivableComment",
-                    "Provide a comment explaining why the car can be used despite the fault.");
+                    "Provide a comment explaining why the asset can be used despite the fault.");
             }
 
             faultVM.AssetList = (await _unitOfWork.Asset.GetAllAsync())
@@ -238,7 +238,7 @@ namespace ReservationApp.Areas.Manager.Controllers
             }
         }
 
-        public async Task<FileResult> ExportToExcel(string? status, string? drive, string? car, string? user)
+        public async Task<FileResult> ExportToExcel(string? status, string? drive, string? asset, string? user)
         {
             try
             {
@@ -250,8 +250,8 @@ namespace ReservationApp.Areas.Manager.Controllers
                 if (!string.IsNullOrWhiteSpace(drive))
                     q = q.Where(f => ((f.IsFixed || f.IsDrivable) ? "Yes" : "No") == drive);
 
-                if (!string.IsNullOrWhiteSpace(car))
-                    q = q.Where(f => f.AssetTag == car);
+                if (!string.IsNullOrWhiteSpace(asset))
+                    q = q.Where(f => f.AssetTag == asset);
 
                 if (!string.IsNullOrWhiteSpace(user))
                     q = q.Where(f => (f.User.FirstName + " " + f.User.LastName) == user);

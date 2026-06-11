@@ -14,7 +14,7 @@
 			<div class="border p-3 mt-4">
 				<div class="form-floating py-2 col-12">
 					<input asp-for="Reservation.AssetTag" asp-items="@Model.AssetList" class="form-control border-0 shadow" readonly>
-					<label asp-for="Reservation.AssetTag" class="ms-2">Registration number</label>
+					<label asp-for="Reservation.AssetTag" class="ms-2">Asset Tag</label>
 					<input type="hidden" asp-for="Reservation.AssetTag" /> <!-- Hidden input to ensure value is submitted -->
 				</div>
 				<div class="form-floating py-2 col-12">

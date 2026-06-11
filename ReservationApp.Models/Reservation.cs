@@ -31,7 +31,7 @@ namespace ReservationApp.Models
     }
 
     /// <summary>
-    /// Represents a reservation made by a user for an car.
+    /// Represents a reservation made by a user for an asset.
     /// </summary>
     public class Reservation
     {
@@ -106,9 +106,9 @@ namespace ReservationApp.Models
         public bool EmailReminderSent { get; set; } = false;
 
         /// <summary>
-        /// Gets or sets a value indicating whether the asset was marked as dirty at pickup.
+        /// Gets or sets a value indicating whether the asset was marked as damaged at pickup.
         /// </summary>
-        public bool? IsCarDirtyAtPickup { get; set; }
+        public bool? IsAssetDamagedAtPickup { get; set; }
 
         /// <summary>
         /// Gets or sets any faults reported at pickup.
@@ -118,9 +118,9 @@ namespace ReservationApp.Models
         public DateTime? PickupFeedbackDate { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the asset was marked as dirty at return.
+        /// Gets or sets a value indicating whether the asset was marked as damaged at return.
         /// </summary>
-        public bool? IsCarDirtyAtReturn { get; set; }
+        public bool? IsAssetDamagedAtReturn { get; set; }
 
         /// <summary>
         /// Gets or sets any faults reported at return.

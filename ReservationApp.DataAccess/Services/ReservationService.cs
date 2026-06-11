@@ -59,7 +59,7 @@ namespace ReservationApp.DataAccess.Services
                     if (claimedRows == 0)
                         continue;
 
-                    var vehicleName = GetVehicleName(reservation.Asset.AssetType);
+                    var vehicleName = GetAssetName(reservation.Asset.AssetType);
 
                     string subject = "Reservation Reminder";
                     string body = $"This is a reminder that you have a reservation for {vehicleName} {reservation.AssetTag} " +
@@ -245,11 +245,9 @@ namespace ReservationApp.DataAccess.Services
                 body);
         }
 
-        private string GetVehicleName(AssetType type)
+        private string GetAssetName(AssetType type)
         {
-            return type == AssetType.Lift
-                ? "lift"
-                : "asset";
+            return "asset";
         }
     }
 }

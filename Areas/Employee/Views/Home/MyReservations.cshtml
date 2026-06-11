@@ -16,7 +16,7 @@
                 <table class="table table-striped text-center">
                     <thead>
                         <tr>
-                            <th>Registration Number</th>
+                            <th>Asset Tag</th>
                             <th>Pickup Date</th>
                             <th>Return Date</th>
                             <th>Status</th>
@@ -81,8 +81,8 @@
                     <input type="hidden" id="formAction" />
 
                     <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" id="isDirty">
-                        <label class="form-check-label" for="isDirty">The car was dirty</label>
+                        <input class="form-check-input" type="checkbox" id="isDamaged">
+                        <label class="form-check-label" for="isDamaged">The asset was damaged</label>
                     </div>
 
                     <div class="form-check mb-2">
@@ -148,7 +148,7 @@
 
             const id = $('#reservationId').val();
             const action = $('#formAction').val();
-            const isDirty = $('#isDirty').is(':checked');
+            const isDamaged = $('#isDamaged').is(':checked');
             const hasFaults = $('#hasFaults').is(':checked');
             const faultsText = $('#faultsText').val();
             const otherText = $('#otherText').val();
@@ -158,7 +158,7 @@
                 : `/Employee/Home/EndEarlyReservation/${id}`;
 
             const data = {
-                isCarDirty: isDirty,
+                isAssetDamaged: isDamaged,
                 hasFaults: hasFaults,
                 faultsDescription: faultsText,
                 otherReason: otherText

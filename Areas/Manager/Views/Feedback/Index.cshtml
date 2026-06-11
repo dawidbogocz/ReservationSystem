@@ -22,9 +22,9 @@
                         }
                     </select>
 
-                    <select id="carFilter" class="form-select w-auto">
+                    <select id="assetFilter" class="form-select w-auto">
                         <option value="">Asset (all)</option>
-                        @foreach (var plate in ViewBag.CarPlates as IEnumerable<string>)
+                        @foreach (var plate in ViewBag.AssetTags as IEnumerable<string>)
                         {
                             <option value="@plate">@plate</option>
                         }
@@ -68,9 +68,9 @@
                         <th>Asset</th>
                         <th>User</th>
                         <th>Reservation</th>
-                        <th>Mileage</th>
-                        <th>Fuel</th>
-                        <th>Cleanliness</th>
+                        <th>Usage count</th>
+                        <th>Condition [%]</th>
+                        <th>Condition</th>
                         <th>Faults</th>
                     </tr>
                 </thead>
@@ -107,12 +107,12 @@
                             return s;
                         }
                     },
-                    { data: 'car' },
+                    { data: 'asset' },
                     { data: 'user' },
                     { data: 'reservationId' },
-                    { data: 'mileage', render: d => d != null ? (Number(d).toLocaleString('pl-PL') + ' km') : '-' },
-                    { data: 'fuel', render: d => d != null ? (d + ' %') : '-' },
-                    { data: 'dirty', render: d => d ? 'Dirty' : 'Clean' },
+                    { data: 'usageCount', render: d => d != null ? (Number(d).toLocaleString('pl-PL')) : '-' },
+                    { data: 'condition', render: d => d != null ? (d + ' %') : '-' },
+                    { data: 'conditionStatus', render: d => d ? 'Damaged' : 'Good' },
                     { data: 'faults' }
                 ],
                 order: [[0, 'desc']],
@@ -129,14 +129,14 @@
 
             $('#typeFilter').on('change', function () { table.column(1).search(this.value).draw(); });
             $('#statusFilter').on('change', function () { table.column(2).search(this.value).draw(); });
-            $('#carFilter').on('change', function () { table.column(3).search(this.value).draw(); });
+            $('#assetFilter').on('change', function () { table.column(3).search(this.value).draw(); });
             $('#userFilter').on('change', function () { table.column(4).search(this.value).draw(); });
 
             $('#exportBtn').on('click', function () {
                 const qs = $.param({
                     kind: $('#typeFilter').val(),
                     status: $('#statusFilter').val(),
-                    car: $('#carFilter').val(),
+                    asset: $('#assetFilter').val(),
                     user: $('#userFilter').val(),
                     dateFrom: $('#dateFrom').val(),
                     dateTo: $('#dateTo').val()

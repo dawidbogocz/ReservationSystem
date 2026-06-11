@@ -6,8 +6,7 @@ namespace ReservationApp.Models
 {
     public enum AssetType
     {
-        Car,
-        Lift
+        Default
     }
 
     /// <summary>
@@ -16,17 +15,17 @@ namespace ReservationApp.Models
     public class Asset
     {
         /// <summary>
-        /// Gets or sets the unique tag of the car.
+        /// Gets or sets the unique tag of the asset.
         /// </summary>
         [Key]
-        [Required(ErrorMessage = "Registration number is required")]
+        [Required(ErrorMessage = "Asset tag is required")]
         [MaxLength(30)]
-        [MinLength(5, ErrorMessage = "Registration number must be at least {1} characters")]
+        [MinLength(5, ErrorMessage = "Asset tag must be at least {1} characters")]
         public string AssetTag { get; set; }
 
         [Required]
         [Display(Name = "Asset type")]
-        public AssetType AssetType { get; set; } = AssetType.Car;
+        public AssetType AssetType { get; set; } = AssetType.Default;
 
         /// <summary>
         /// Gets or sets the make (manufacturer) of the asset.
@@ -65,13 +64,13 @@ namespace ReservationApp.Models
         public string? ImageUrl { get; set; }
 
         /// <summary>
-        /// Gets or sets the collection of faults reported for the car.
+        /// Gets or sets the collection of faults reported for the asset.
         /// </summary>
         [ValidateNever]
         public ICollection<Fault> Faults { get; set; } = new List<Fault>();
 
         /// <summary>
-        /// Gets or sets the collection of reservations associated with the car.
+        /// Gets or sets the collection of reservations associated with the asset.
         /// </summary>
         [ValidateNever]
         public ICollection<Reservation> Reservations { get; set; }
@@ -82,17 +81,17 @@ namespace ReservationApp.Models
         public bool IsDamaged { get; set; } = false;
 
         /// <summary>
-        /// Indicates whether the asset has tracking enabled.
+        /// Indicates whether the asset has telemetry enabled.
         /// </summary>
-        public bool HasTracking { get; set; } = false;
+        public bool HasTelemetry { get; set; } = false;
 
-        [Display(Name = "Mileage [km]")]
+        [Display(Name = "Usage count")]
         [Range(0, int.MaxValue)]
-        public int Mileage { get; set; } = 0;
+        public int UsageCount { get; set; } = 0;
 
-        [Display(Name = "Fuel level [%]")]
+        [Display(Name = "Condition [%]")]
         [Range(0, 100)]
-        public int FuelLevel { get; set; } = 100;
+        public int ConditionLevel { get; set; } = 100;
 
         /// <summary>
         /// Indicates whether the asset has been soft-deleted.

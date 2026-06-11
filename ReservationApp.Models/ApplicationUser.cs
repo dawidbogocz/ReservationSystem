@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace ReservationApp.Models
 {
     /// <summary>
-    /// Represents an application user with extended properties used for car reservations.
+    /// Represents an application user with extended properties used for asset reservations.
     /// </summary>
     public class ApplicationUser : IdentityUser
     {

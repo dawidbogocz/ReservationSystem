@@ -42,13 +42,11 @@ namespace ReservationApp.Areas.Manager.Controllers
         #region VIEWS
 
         /// <summary>
-        /// Returns the correct English noun for a given vehicle type.
+        /// Returns the generic term for an asset.
         /// </summary>
         private (string nominative, string genitive, string instrumental) GetVehicleWord(AssetType type)
         {
-            return type == AssetType.Lift
-                ? ("lift", "lift", "lift")
-                : ("car", "car", "car");
+            return ("asset", "asset", "asset");
         }
 
         /// <summary>
@@ -60,7 +58,7 @@ namespace ReservationApp.Areas.Manager.Controllers
             {
                 var reservations = await GetVisibleReservationsForCurrentUserAsync(reservationId);
 
-                ViewBag.CarPlates = reservations
+                ViewBag.AssetTags = reservations
                     .Select(r => r.AssetTag)
                     .Distinct()
                     .OrderBy(p => p)
@@ -566,7 +564,7 @@ TempData["error"] = "Something went wrong";
 
         #region EXCEL
 
-        public async Task<FileResult> ExportToExcel(string? status, string? car, string? user, DateTime? dateFrom, DateTime? dateTo, int? reservationId)
+        public async Task<FileResult> ExportToExcel(string? status, string? asset, string? user, DateTime? dateFrom, DateTime? dateTo, int? reservationId)
         {
             try
             {
@@ -576,8 +574,8 @@ TempData["error"] = "Something went wrong";
                 if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<Approval>(status, out var st))
                     query = query.Where(r => r.Approval == st);
 
-                if (!string.IsNullOrWhiteSpace(car))
-                    query = query.Where(r => r.AssetTag == car);
+                if (!string.IsNullOrWhiteSpace(asset))
+                    query = query.Where(r => r.AssetTag == asset);
 
                 if (!string.IsNullOrWhiteSpace(user))
                     query = query.Where(r => (r.User.FirstName + " " + r.User.LastName) == user);
@@ -596,7 +594,7 @@ TempData["error"] = "Something went wrong";
                 ws.Cell(1, 1).InsertTable(exportReservations.Select(r => new
                 {
                     r.Id,
-                    Car = r.AssetTag,
+                    Asset = r.AssetTag,
                     Driver = $"{r.User.FirstName} {r.User.LastName}",
                     From = r.PickupDate,
                     To = r.ReturnDate,

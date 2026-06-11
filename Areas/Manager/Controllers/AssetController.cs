@@ -50,7 +50,7 @@ namespace ReservationApp.Areas.Manager.Controllers
         /// Processes the create asset form submission asynchronously.
         /// </summary>
         /// <param name="obj">The asset view model containing asset details.</param>
-        /// <param name="file">An optional image file for the car.</param>
+        /// <param name="file">An optional image file for the asset.</param>
         /// <returns>
         /// Redirects to the Index view on success; otherwise, redisplays the form.
         /// </returns>
@@ -63,7 +63,7 @@ namespace ReservationApp.Areas.Manager.Controllers
                 var existingAsset = await _unitOfWork.Asset.GetAsync(u => u.AssetTag == obj.Asset.AssetTag && !u.IsDeleted);
                 if (existingAsset != null)
                 {
-                    TempData["error"] = "A car with this license plate already exists.";
+                    TempData["error"] = "An asset with this tag already exists.";
                     obj.Asset.AssetTag = string.Empty;
                     return View(obj);
                 }
@@ -73,20 +73,20 @@ namespace ReservationApp.Areas.Manager.Controllers
                     obj.Asset.ImageUrl = SaveImage(file);
                     await _unitOfWork.Asset.AddAsync(obj.Asset);
                     _unitOfWork.Save();
-                    TempData["success"] = "New car added!";
+                    TempData["success"] = "New asset added!";
                     return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to create asset {Tag}.", obj.Asset?.AssetTag);
-                TempData["error"] = "Failed to create car.";
+                TempData["error"] = "Failed to create asset.";
             }
             return View(obj);
         }
 
         /// <summary>
-        /// Displays the edit form for an existing car.
+        /// Displays the edit form for an existing asset.
         /// </summary>
         /// <param name="id">The tag of the asset to edit.</param>
         /// <returns>The Edit view with asset details.</returns>
@@ -115,7 +115,7 @@ namespace ReservationApp.Areas.Manager.Controllers
         /// Processes the edit asset form submission asynchronously.
         /// </summary>
         /// <param name="obj">The asset view model with updated details.</param>
-        /// <param name="file">An optional new image file for the car.</param>
+        /// <param name="file">An optional new image file for the asset.</param>
         /// <returns>
         /// Redirects to the Index view upon success; otherwise, redisplays the form.
         /// </returns>
@@ -134,14 +134,14 @@ namespace ReservationApp.Areas.Manager.Controllers
                     }
                     _unitOfWork.Asset.Update(obj.Asset);
                     _unitOfWork.Save();
-                    TempData["success"] = "Car updated";
+                    TempData["success"] = "Asset updated";
                     return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to update asset {Tag}.", obj.Asset?.AssetTag);
-                TempData["error"] = "Failed to update car.";
+                TempData["error"] = "Failed to update asset.";
             }
             return View(obj);
         }
@@ -157,11 +157,11 @@ namespace ReservationApp.Areas.Manager.Controllers
             try
             {
                 if (string.IsNullOrEmpty(id))
-                    return Json(new { success = false, message = "No license plate provided." });
+                    return Json(new { success = false, message = "No asset tag provided." });
 
                 var asset = await _unitOfWork.Asset.GetAsync(u => u.AssetTag == id && !u.IsDeleted);
                 if (asset == null)
-                    return Json(new { success = false, message = "Car not found." });
+                    return Json(new { success = false, message = "Asset not found." });
 
                 if (!string.IsNullOrEmpty(asset.ImageUrl))
                     DeleteImage(asset.ImageUrl);
@@ -170,12 +170,12 @@ namespace ReservationApp.Areas.Manager.Controllers
                 _unitOfWork.Asset.Update(asset);
                 _unitOfWork.Save();
 
-                return Json(new { success = true, message = "Car deleted successfully." });
+                return Json(new { success = true, message = "Asset deleted successfully." });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to delete asset {Tag}.", id);
-                return Json(new { success = false, message = "Error deleting car." });
+                return Json(new { success = false, message = "Error deleting asset." });
             }
         }
         public async Task<FileResult> ExportToExcel(string? make, string? dirt, string? vt)
@@ -187,9 +187,9 @@ namespace ReservationApp.Areas.Manager.Controllers
                 if (!string.IsNullOrWhiteSpace(make))
                     q = q.Where(c => c.Make == make);
 
-                var list = q.OrderBy(c => c.AssetTag).ToList()
-                            .Where(c => (string.IsNullOrWhiteSpace(dirt) || (c.IsDamaged ? "Dirty" : "Clean") == dirt) &&
-                                        (string.IsNullOrWhiteSpace(vt) || (c.HasTracking ? "Yes" : "No") == vt))
+var list = q.OrderBy(c => c.AssetTag).ToList()
+                            .Where(c => (string.IsNullOrWhiteSpace(dirt) || (c.IsDamaged ? "Damaged" : "Good") == dirt) &&
+                                        (string.IsNullOrWhiteSpace(vt) || (c.HasTelemetry ? "Yes" : "No") == vt))
                             .Select(c => new
                             {
                                 c.AssetTag,
@@ -198,19 +198,19 @@ namespace ReservationApp.Areas.Manager.Controllers
                                 c.Model,
                                 Inspection = c.InspectionDate,
                                 Service = c.ServiceDate,
-                                Condition = c.IsDamaged ? "Dirty" : "Clean",
-                                Tracking = c.HasTracking ? "Yes" : "No",
-                                c.Mileage,
-                                Level = c.AssetType == AssetType.Car ? $"{c.FuelLevel} %" : $"{c.FuelLevel} % SoC"
+                                Condition = c.IsDamaged ? "Damaged" : "Good",
+                                Telemetry = c.HasTelemetry ? "Yes" : "No",
+                                c.UsageCount,
+                                Level = $"{c.ConditionLevel} %"
                             });
 
                 using var wb = new ClosedXML.Excel.XLWorkbook();
-                wb.Worksheets.Add("Cars").FirstCell().InsertTable(list);
+                wb.Worksheets.Add("Assets").FirstCell().InsertTable(list);
                 wb.Worksheet(1).Columns().AdjustToContents();
 
                 using var ms = new MemoryStream();
                 wb.SaveAs(ms); ms.Position = 0;
-                return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"cars_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
+                return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"assets_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
             }
             catch (Exception ex)
             {
@@ -236,12 +236,12 @@ namespace ReservationApp.Areas.Manager.Controllers
             {
                 string wwwRootPath = _webHostEnvironment.WebRootPath;
                 string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                string path = Path.Combine(wwwRootPath, @"images/car/" + fileName);
+                string path = Path.Combine(wwwRootPath, @"images/asset/" + fileName);
                 using (var fileStream = new FileStream(path, FileMode.Create))
                 {
                     file.CopyTo(fileStream);
                 }
-                return @"/images/car/" + fileName;
+                return @"/images/asset/" + fileName;
             }
             catch (Exception ex)
             {

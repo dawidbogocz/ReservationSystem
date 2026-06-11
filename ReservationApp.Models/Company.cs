@@ -24,7 +24,7 @@ namespace ReservationApp.Models
         public string NIP { get; set; }
 
         public ICollection<ApplicationUser> Users { get; set; }
-        public ICollection<Asset> Cars { get; set; }
+        public ICollection<Asset> Assets { get; set; }
     }
 }
 */

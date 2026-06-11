@@ -18,9 +18,9 @@
                     <option value="Nie">No</option>
                 </select>
 
-                <select id="carFilter" class="form-select w-auto">
+                <select id="assetFilter" class="form-select w-auto">
                     <option value="">Asset (all)</option>
-                    @foreach (var p in ViewBag.CarPlates as IEnumerable<string>)
+                    @foreach (var p in ViewBag.AssetTags as IEnumerable<string>)
                     {
                         <option value="@p">@p</option>
                     }
@@ -51,7 +51,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Registration Number</th>
+                    <th>Asset Tag</th>
                     <th>Description</th>
                     <th>Reported by</th>
                     <th>Status</th>
@@ -134,7 +134,7 @@
                 },
                 "columns": [
                     { "data": "id" },
-                    { "data": "carNumberPlate" },
+                    { "data": "assetTag" },
                     { "data": "description" },
                     { "data": "user" },
                     {
@@ -232,7 +232,7 @@
             table.column(5).search(this.value).draw()
         });
 
-        $('#carFilter').on('change', function () {
+        $('#assetFilter').on('change', function () {
             table.column(1).search(this.value).draw()
         });
 
@@ -244,7 +244,7 @@
             const qs = $.param({
                 status: $('#statusFilter').val(),
                 drive: $('#driveFilter').val(),
-                car: $('#carFilter').val(),
+                asset: $('#assetFilter').val(),
                 user: $('#userFilter').val()
             });
             window.location = `/Manager/Fault/ExportToExcel?${qs}`;

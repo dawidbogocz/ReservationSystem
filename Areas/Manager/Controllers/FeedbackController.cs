@@ -30,7 +30,7 @@ namespace ReservationApp.Areas.Manager.Controllers
 
                 var logs = await baseQuery.ToListAsync();
 
-                ViewBag.CarPlates = logs.Select(l => l.AssetTag)
+                ViewBag.AssetTags = logs.Select(l => l.AssetTag)
                     .Where(s => !string.IsNullOrWhiteSpace(s))
                     .Distinct()
                     .OrderBy(s => s)
@@ -72,12 +72,12 @@ namespace ReservationApp.Areas.Manager.Controllers
                         when = f.CreatedAt,
                         kind = f.Kind.ToString(),
                         status = f.Status.ToString(),
-                        car = f.AssetTag,
+                        asset = f.AssetTag,
                         user = f.User.FirstName + " " + f.User.LastName,
                         reservationId = f.ReservationId,
                         mileage = f.Mileage,
                         fuel = f.FuelLevel,
-                        dirty = f.IsCarDirty ?? false,
+                        dirty = f.IsAssetDamaged ?? false,
                         faults = f.HasFaults == true ? (string.IsNullOrWhiteSpace(f.Faults) ? "(none)" : f.Faults) : "-"
                     });
 
@@ -91,7 +91,7 @@ namespace ReservationApp.Areas.Manager.Controllers
         }
 
         [HttpGet]
-        public async Task<FileResult> ExportToExcel(string? kind, string? status, string? car, string? user, DateTime? dateFrom, DateTime? dateTo)
+        public async Task<FileResult> ExportToExcel(string? kind, string? status, string? asset, string? user, DateTime? dateFrom, DateTime? dateTo)
         {
             try
             {
@@ -106,8 +106,8 @@ namespace ReservationApp.Areas.Manager.Controllers
                 if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<FeedbackStatus>(status, true, out var s))
                     query = query.Where(f => f.Status == s);
 
-                if (!string.IsNullOrWhiteSpace(car))
-                    query = query.Where(f => f.AssetTag == car);
+                if (!string.IsNullOrWhiteSpace(asset))
+                    query = query.Where(f => f.AssetTag == asset);
 
                 if (!string.IsNullOrWhiteSpace(user))
                     query = query.Where(f => (f.User.FirstName + " " + f.User.LastName) == user);
@@ -129,12 +129,12 @@ namespace ReservationApp.Areas.Manager.Controllers
                     Type = f.Kind.ToString(),
                     Status = f.Status == FeedbackStatus.Provided ? "Provided" :
                              f.Status == FeedbackStatus.Expired ? "Expired" : "Pending",
-                    Car = f.AssetTag,
+                    Asset = f.AssetTag,
                     User = $"{f.User.FirstName} {f.User.LastName}",
                     Reservation = f.ReservationId,
-                    Mileage_km = f.Mileage,
-                    Fuel_pct = f.FuelLevel,
-                    Cleanliness = (f.IsCarDirty ?? false) ? "Dirty" : "Clean",
+                    UsageCount_km = f.Mileage,
+                    Condition_pct = f.FuelLevel,
+                    Condition = (f.IsAssetDamaged ?? false) ? "Damaged" : "Good",
                     Faults = f.HasFaults == true ? (string.IsNullOrWhiteSpace(f.Faults) ? "(none)" : f.Faults) : "-"
                 });
 

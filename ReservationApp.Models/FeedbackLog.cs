@@ -36,7 +36,7 @@ namespace ReservationApp.Models
 
         public int? Mileage { get; set; }
         public int? FuelLevel { get; set; }
-        public bool? IsCarDirty { get; set; }
+        public bool? IsAssetDamaged { get; set; }
         public bool? HasFaults { get; set; }
         public string? Faults { get; set; }
     }

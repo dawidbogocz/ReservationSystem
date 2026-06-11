@@ -6,10 +6,10 @@
     </div>
     <div class="card-body p-4">
         <div class="table-responsive mt-3">
-            <table id="reservedCarsTable" class="table table-bordered table-striped">
+            <table id="reservedAssetsTable" class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Registration number</th>
+                        <th>Asset Tag</th>
                         <th>User</th>
                         <th>Phone</th>
                         <th>From date</th>
@@ -19,13 +19,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var car in Model)
+                    @foreach (var asset in Model)
                     {
-                        foreach (var reservation in car.Reservations.Where(r =>
+                        foreach (var reservation in asset.Reservations.Where(r =>
                         (r.Approval == Approval.Pending || r.Approval == Approval.Accepted) && r.ReturnDate > ViewBag.StartDate))
                         {
                             <tr>
-                                <td>@car.AssetTag</td>
+                                <td>@asset.AssetTag</td>
                                 <td>@reservation.User.FirstName @reservation.User.LastName</td>
                                 <td>@reservation.User.PhoneNumber</td>
                                 <td data-order="@reservation.PickupDate.ToString("yyyy-MM-dd HH:mm")">
@@ -48,7 +48,7 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            $('#reservedCarsTable').DataTable({
+            $('#reservedAssetsTable').DataTable({
                 language: {
                     lengthMenu: "Show _MENU_ reservations",
                     zeroRecords: "No matching reservations",

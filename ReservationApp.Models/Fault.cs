@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 namespace ReservationApp.Models
 {
     /// <summary>
-    /// Represents a fault or issue reported for an car.
+    /// Represents a fault or issue reported for an asset.
     /// </summary>
     public class Fault
     {

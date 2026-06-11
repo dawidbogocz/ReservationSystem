@@ -44,14 +44,11 @@ namespace ReservationApp.Areas.Employee.Controllers
         }
 
         /// <summary>
-        /// Returns the correct English noun for the given vehicle type
-        /// (singular form).
+        /// Returns the generic term for an asset.
         /// </summary>
         private (string nominative, string genitive, string instrumental) GetVehicleWord(AssetType type)
         {
-            return type == AssetType.Lift
-                ? ("lift", "lift", "lift")
-                : ("car", "car", "car");
+            return ("asset", "asset", "asset");
         }
 
         /// <summary>
@@ -81,7 +78,7 @@ namespace ReservationApp.Areas.Employee.Controllers
                 foreach (var reservation in upcomingReservations)
                 {
                     var words = GetVehicleWord(reservation.Asset.AssetType);
-                    reminders.Add($"Reminder: You have a reservation of {words.genitive} {reservation.AssetTag} on {reservation.PickupDate:dd-MM-yyyy HH:mm}");
+                    reminders.Add($"Reminder: You have a reservation of asset {reservation.AssetTag} on {reservation.PickupDate:dd-MM-yyyy HH:mm}");
                 }
 
                 ViewBag.ReminderNotifications = reminders;
@@ -90,14 +87,14 @@ namespace ReservationApp.Areas.Employee.Controllers
                     .FirstOrDefault(r => r.UserId == userId
                         && r.Approval == Approval.Accepted
                         && DateTime.Now >= r.PickupDate
-                        && r.IsCarDirtyAtPickup == null
+                        && r.IsAssetDamagedAtPickup == null
                         && DateTime.Now < r.ReturnDate);
 
                 var pendingReturn = (await _unitOfWork.Reservation.GetAllAsync(r => r.Asset.IsDeleted == false, "Asset"))
                     .FirstOrDefault(r => r.UserId == userId
                         && r.Approval == Approval.Accepted
                         && DateTime.Now >= r.ReturnDate
-                        && r.IsCarDirtyAtReturn == null);
+                        && r.IsAssetDamagedAtReturn == null);
 
                 ViewBag.PendingPickupReservationId = pendingPickup?.Id;
                 ViewBag.PendingReturnReservationId = pendingReturn?.Id;
@@ -122,19 +119,19 @@ namespace ReservationApp.Areas.Employee.Controllers
         }
 
         /// <summary>
-        /// Displays the reservation creation form for a specific vehicle.
+        /// Displays the reservation creation form for a specific asset.
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> Create(string carNumberPlate, DateTime startDate, DateTime endDate)
+        public async Task<IActionResult> Create(string assetTag, DateTime startDate, DateTime endDate)
         {
             try
             {
-                var car = (await _unitOfWork.Asset.GetAllAsync(c => !c.IsDeleted))
-                    .FirstOrDefault(c => c.AssetTag == carNumberPlate);
+                var asset = (await _unitOfWork.Asset.GetAllAsync(c => !c.IsDeleted))
+                    .FirstOrDefault(c => c.AssetTag == assetTag);
 
-                if (car == null)
+                if (asset == null)
                 {
-                    TempData["error"] = "Vehicle not found!";
+                    TempData["error"] = "Asset not found!";
                     return RedirectToAction("Index");
                 }
 
@@ -144,18 +141,18 @@ namespace ReservationApp.Areas.Employee.Controllers
                 {
                     Reservation = new Reservation
                     {
-                        AssetTag = car.AssetTag,
+                        AssetTag = asset.AssetTag,
                         PickupDate = startDate,
                         ReturnDate = endDate,
-                        Asset = car,
+                        Asset = asset,
                         UserId = userId
                     },
                     AssetList = new List<SelectListItem>
                     {
                         new SelectListItem
                         {
-                            Text = car.AssetTag,
-                            Value = car.AssetTag,
+                            Text = asset.AssetTag,
+                            Value = asset.AssetTag,
                             Disabled = true
                         }
                     }
@@ -165,7 +162,7 @@ namespace ReservationApp.Areas.Employee.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading reservation create view for car {AssetTag}", carNumberPlate);
+                _logger.LogError(ex, "Error loading reservation create view for asset {AssetTag}", assetTag);
                 TempData["error"] = "An error occurred while preparing the reservation form.";
                 return RedirectToAction("Index");
             }
@@ -179,25 +176,23 @@ namespace ReservationApp.Areas.Employee.Controllers
         {
             try
             {
-                var car = await _unitOfWork.Asset.GetAsync(c => c.AssetTag == obj.Reservation.AssetTag);
-                if (car == null)
+                var asset = await _unitOfWork.Asset.GetAsync(c => c.AssetTag == obj.Reservation.AssetTag);
+                if (asset == null)
                 {
-                    TempData["error"] = "Vehicle not found!";
-                    obj.AssetList = await GetCarSelectListAsync();
+                    TempData["error"] = "Asset not found!";
+                    obj.AssetList = await GetAssetSelectListAsync();
                     return View(obj);
                 }
 
-                var words = GetVehicleWord(car.AssetType);
-
                 if (!obj.Reservation.AcceptStatute)
                 {
-                    ModelState.AddModelError("AcceptStatute", $"You must accept the terms before reserving the {words.genitive}.");
+                    ModelState.AddModelError("AcceptStatute", "You must accept the terms before reserving the asset.");
                 }
 
                 if (!ModelState.IsValid)
                 {
                     TempData["error"] = "An error occurred while creating the reservation.";
-                    obj.AssetList = await GetCarSelectListAsync();
+                    obj.AssetList = await GetAssetSelectListAsync();
                     return View(obj);
                 }
 
@@ -215,7 +210,7 @@ namespace ReservationApp.Areas.Employee.Controllers
 
                     if (conflictExists)
                     {
-                        TempData["error"] = $"{words.nominative.Capitalize()} was reserved while filling the form. Please choose different dates or another {words.nominative}.";
+                        TempData["error"] = "Asset was reserved while filling the form. Please choose different dates or another asset.";
                         transaction.Rollback();
                         return RedirectToAction("Index");
                     }
@@ -238,7 +233,7 @@ namespace ReservationApp.Areas.Employee.Controllers
 
                     string userBody =
                         $"Hello {user.FirstName},<br/><br/>" +
-                        $"Your reservation for vehicle <strong>{obj.Reservation.AssetTag}</strong> has been sent for approval.<br/>" +
+                        $"Your reservation for asset <strong>{obj.Reservation.AssetTag}</strong> has been sent for approval.<br/>" +
                         $"You will receive a notification when the reservation is accepted or rejected.<br/><br/>" +
                         $"You can track its status <a href='{myReservationsLink}'>here</a>.";
 
@@ -258,7 +253,7 @@ namespace ReservationApp.Areas.Employee.Controllers
                     $"A new reservation has been submitted for approval.<br/><br/>" +
                     "<ul>" +
                     $"<li><strong>Reservation ID:</strong> {obj.Reservation.Id}</li>" +
-                    $"<li><strong>Vehicle:</strong> {obj.Reservation.AssetTag}</li>" +
+                    $"<li><strong>Asset:</strong> {obj.Reservation.AssetTag}</li>" +
                     $"<li><strong>User:</strong> {user?.FirstName} {user?.LastName}</li>" +
                     $"<li><strong>User email:</strong> {user?.Email}</li>" +
                     $"<li><strong>Pickup date:</strong> {obj.Reservation.PickupDate:dd-MM-yyyy HH:mm}</li>" +
@@ -278,12 +273,12 @@ namespace ReservationApp.Areas.Employee.Controllers
             {
                 _logger.LogError(
                     ex,
-                    "Error creating reservation for car {AssetTag} and user {UserId}",
+                    "Error creating reservation for asset {AssetTag} and user {UserId}",
                     obj.Reservation?.AssetTag,
                     obj.Reservation?.UserId);
 
                 TempData["error"] = "An error occurred while creating the reservation.";
-                obj.AssetList = await GetCarSelectListAsync();
+                obj.AssetList = await GetAssetSelectListAsync();
                 return View(obj);
             }
         }
@@ -367,7 +362,7 @@ namespace ReservationApp.Areas.Employee.Controllers
 
                     if (conflictExists)
                     {
-                        TempData["error"] = "Cannot extend the reservation, the car is reserved in the selected time period.";
+                        TempData["error"] = "Cannot extend the reservation, the asset is reserved in the selected time period.";
                         transaction.Rollback();
                         return RedirectToAction("MyReservations");
                     }
@@ -387,7 +382,7 @@ namespace ReservationApp.Areas.Employee.Controllers
                     $"User <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> has extended a reservation and it requires re-approval.<br/><br/>" +
                     "<ul>" +
                     $"<li><strong>Reservation ID:</strong> {reservation.Id}</li>" +
-                    $"<li><strong>Vehicle:</strong> {reservation.AssetTag}</li>" +
+                    $"<li><strong>Asset:</strong> {reservation.AssetTag}</li>" +
                     $"<li><strong>New return date:</strong> {reservation.ReturnDate:dd-MM-yyyy HH:mm}</li>" +
                     "</ul>";
 
@@ -433,7 +428,7 @@ namespace ReservationApp.Areas.Employee.Controllers
                     $"User <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> has ended a reservation early.<br/><br/>" +
                     "<ul>" +
                     $"<li><strong>Reservation ID:</strong> {reservation.Id}</li>" +
-                    $"<li><strong>Vehicle:</strong> {reservation.AssetTag}</li>" +
+                    $"<li><strong>Asset:</strong> {reservation.AssetTag}</li>" +
                     $"<li><strong>New return date:</strong> {reservation.ReturnDate:dd-MM-yyyy HH:mm}</li>" +
                     "</ul>";
 
@@ -475,7 +470,7 @@ namespace ReservationApp.Areas.Employee.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CancelReservation(int id, bool isCarDirty, bool hasFaults, string? faultsDescription, string? otherReason)
+        public async Task<IActionResult> CancelReservation(int id, bool isAssetDamaged, bool hasFaults, string? faultsDescription, string? otherReason)
         {
             try
             {
@@ -486,12 +481,12 @@ namespace ReservationApp.Areas.Employee.Controllers
 
                 reservation.Approval = Approval.Cancelled;
 
-                var car = reservation.Asset;
+                var asset = reservation.Asset;
 
-                if (isCarDirty && car != null)
+                if (isAssetDamaged && asset != null)
                 {
-                    car.IsDamaged = true;
-                    _unitOfWork.Asset.Update(car);
+                    asset.IsDamaged = true;
+                    _unitOfWork.Asset.Update(asset);
                 }
 
                 if (hasFaults && !string.IsNullOrWhiteSpace(faultsDescription))
@@ -509,8 +504,8 @@ namespace ReservationApp.Areas.Employee.Controllers
 
                 var notes = new List<string>();
 
-                if (isCarDirty)
-                    notes.Add("User reported that the car was dirty");
+                if (isAssetDamaged)
+                    notes.Add("User reported that the asset was damaged");
 
                 if (hasFaults && !string.IsNullOrWhiteSpace(faultsDescription))
                     notes.Add($"Faults: {faultsDescription}");
@@ -529,7 +524,7 @@ namespace ReservationApp.Areas.Employee.Controllers
                     $"User <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> has cancelled a reservation.<br/><br/>" +
                     "<ul>" +
                     $"<li><strong>Reservation ID:</strong> {reservation.Id}</li>" +
-                    $"<li><strong>Vehicle:</strong> {reservation.AssetTag}</li>" +
+                    $"<li><strong>Asset:</strong> {reservation.AssetTag}</li>" +
                     $"<li><strong>From:</strong> {reservation.PickupDate:dd-MM-yyyy HH:mm}</li>" +
                     $"<li><strong>To:</strong> {reservation.ReturnDate:dd-MM-yyyy HH:mm}</li>" +
                     $"<li><strong>Note:</strong> {(string.IsNullOrWhiteSpace(reservation.Note) ? "None" : reservation.Note)}</li>" +
@@ -561,7 +556,7 @@ namespace ReservationApp.Areas.Employee.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading Reserved view.");
-                TempData["error"] = "An error occurred while loading reserved vehicles.";
+                TempData["error"] = "An error occurred while loading reserved assets.";
                 return View(new List<Asset>());
             }
         }
@@ -607,7 +602,7 @@ namespace ReservationApp.Areas.Employee.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> PickupFeedback(int reservationId, bool isCarDirty, bool hasFaults, string? faults, int pickupMileage)
+        public async Task<IActionResult> PickupFeedback(int reservationId, bool isAssetDamaged, bool hasFaults, string? faults, int pickupMileage)
         {
             try
             {
@@ -618,7 +613,7 @@ namespace ReservationApp.Areas.Employee.Controllers
                     return RedirectToAction("MyReservations");
                 }
 
-                var car = reservation.Asset;
+                var asset = reservation.Asset;
                 var previousReturn = (await _unitOfWork.Reservation.GetAllAsync())
                     .Where(r => r.AssetTag == reservation.AssetTag
                                 && r.Id != reservation.Id
@@ -636,23 +631,23 @@ namespace ReservationApp.Areas.Employee.Controllers
                     return RedirectToAction("PickupFeedback", new { reservationId });
                 }
 
-                var diff = Math.Abs(pickupMileage - car.Mileage);
+                var diff = Math.Abs(pickupMileage - asset.UsageCount);
 
                 if (diff > 10)
                 {
-                    string link = string.Format(_config["ReservationLinks:CarEdit"], car.AssetTag);
+                    string link = string.Format(_config["ReservationLinks:AssetEdit"], asset.AssetTag);
 
-                    string subject = $"[ALERT] Mileage discrepancy – {car.AssetTag}";
+                    string subject = $"[ALERT] Mileage discrepancy – {asset.AssetTag}";
                     string body =
                         "Hello,<br/><br/>" +
-                        $"For vehicle <strong>{car.AssetTag}</strong> a mileage discrepancy greater than ±10 km was recorded.<br/><br/>" +
+                        $"For asset <strong>{asset.AssetTag}</strong> a mileage discrepancy greater than ±10 km was recorded.<br/><br/>" +
                         "<ul>" +
-                        $"<li><strong>Previous recorded mileage:</strong> {car.Mileage:N0} km</li>" +
+                        $"<li><strong>Previous recorded mileage:</strong> {asset.UsageCount:N0} km</li>" +
                         $"<li><strong>Mileage provided at pickup:</strong> {pickupMileage:N0} km</li>" +
                         $"<li><strong>Difference:</strong> {diff:N0} km</li>" +
                         $"<li><strong>Driver:</strong> {reservation.User?.FirstName} {reservation.User?.LastName}</li>" +
                         "</ul>" +
-                        $"Please verify and correct if necessary in the system: <a href=\"{link}\">Edit vehicle</a>";
+                        $"Please verify and correct if necessary in the system: <a href=\"{link}\">Edit asset</a>";
 
                     await _departmentNotifications.SendToGroupManagersAndAdminsAsync(
                         reservation.UserId,
@@ -660,11 +655,11 @@ namespace ReservationApp.Areas.Employee.Controllers
                         body);
                 }
 
-                car.Mileage = pickupMileage;
-                _unitOfWork.Asset.Update(car);
+                asset.UsageCount = pickupMileage;
+                _unitOfWork.Asset.Update(asset);
 
                 reservation.PickupMileage = pickupMileage;
-                reservation.IsCarDirtyAtPickup = isCarDirty;
+                reservation.IsAssetDamagedAtPickup = isAssetDamaged;
                 reservation.PickupFaults = hasFaults ? faults : null;
                 reservation.PickupFeedbackDate = DateTime.Now;
 
@@ -674,7 +669,7 @@ namespace ReservationApp.Areas.Employee.Controllers
                 {
                     await _unitOfWork.Fault.AddAsync(new Fault
                     {
-                        AssetTag = car.AssetTag,
+                        AssetTag = asset.AssetTag,
                         UserId = reservation.UserId,
                         Description = string.IsNullOrWhiteSpace(faults) ? "(no description)" : faults.Trim(),
                         DateReported = DateTime.Now,
@@ -688,22 +683,22 @@ namespace ReservationApp.Areas.Employee.Controllers
                     FeedbackKind.Pickup,
                     pickupMileage,
                     null,
-                    isCarDirty,
+                    isAssetDamaged,
                     hasFaults,
                     faults);
 
                 _unitOfWork.Save();
 
-                if (isCarDirty || hasFaults)
+                if (isAssetDamaged || hasFaults)
                 {
                     string subject = $"Pickup issue report #{reservation.Id}";
                     string body =
                         $"Hello,<br/><br/>" +
-                        $"User <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> reported an issue during vehicle pickup.<br/><br/>" +
+                        $"User <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> reported an issue during asset pickup.<br/><br/>" +
                         "<ul>" +
                         $"<li><strong>Reservation ID:</strong> {reservation.Id}</li>" +
-                        $"<li><strong>Vehicle:</strong> {reservation.AssetTag}</li>" +
-                        $"<li><strong>Dirty vehicle:</strong> {(isCarDirty ? "Yes" : "No")}</li>" +
+                        $"<li><strong>Asset:</strong> {reservation.AssetTag}</li>" +
+                        $"<li><strong>Damaged asset:</strong> {(isAssetDamaged ? "Yes" : "No")}</li>" +
                         $"<li><strong>Faults:</strong> {(hasFaults ? (string.IsNullOrWhiteSpace(faults) ? "(no description)" : faults) : "No")}</li>" +
                         $"<li><strong>Mileage:</strong> {pickupMileage:N0} km</li>" +
                         "</ul>";
@@ -764,7 +759,7 @@ namespace ReservationApp.Areas.Employee.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ReturnFeedback(int reservationId, bool isCarDirty, bool hasFaults, string? faults, int returnMileage, int fuelLevel)
+        public async Task<IActionResult> ReturnFeedback(int reservationId, bool isAssetDamaged, bool hasFaults, string? faults, int returnMileage, int fuelLevel)
         {
             try
             {
@@ -782,31 +777,31 @@ namespace ReservationApp.Areas.Employee.Controllers
                     return RedirectToAction("ReturnFeedback", new { reservationId });
                 }
 
-                var car = reservation.Asset;
-                if (car == null)
+                var asset = reservation.Asset;
+                if (asset == null)
                 {
 TempData["error"] = "Reservation not found.";
                     return RedirectToAction("MyReservations");
                 }
 
-                reservation.IsCarDirtyAtReturn = isCarDirty;
+                reservation.IsAssetDamagedAtReturn = isAssetDamaged;
                 reservation.ReturnFaults = hasFaults ? faults : null;
                 reservation.ReturnMileage = returnMileage;
                 reservation.ReturnFeedbackDate = DateTime.Now;
 
                 _unitOfWork.Reservation.Update(reservation);
 
-                car.IsDamaged = isCarDirty;
-                car.Mileage = returnMileage;
-                car.FuelLevel = fuelLevel;
+                asset.IsDamaged = isAssetDamaged;
+                asset.UsageCount = returnMileage;
+                asset.ConditionLevel = fuelLevel;
 
-                _unitOfWork.Asset.Update(car);
+                _unitOfWork.Asset.Update(asset);
 
                 if (hasFaults)
                 {
                     await _unitOfWork.Fault.AddAsync(new Fault
                     {
-                        AssetTag = car.AssetTag,
+                        AssetTag = asset.AssetTag,
                         UserId = reservation.UserId,
                         Description = string.IsNullOrWhiteSpace(faults) ? "(no description)" : faults.Trim(),
                         DateReported = DateTime.Now,
@@ -820,22 +815,22 @@ TempData["error"] = "Reservation not found.";
                     FeedbackKind.Return,
                     returnMileage,
                     fuelLevel,
-                    isCarDirty,
+                    isAssetDamaged,
                     hasFaults,
                     faults);
 
                 _unitOfWork.Save();
 
-                if (isCarDirty || hasFaults)
+                if (isAssetDamaged || hasFaults)
                 {
-                    string subject = $"Return report for vehicle #{reservation.Id}";
+                    string subject = $"Return report for asset #{reservation.Id}";
                     string body =
                         $"Hello,<br/><br/>" +
-                        $"User <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> reported an issue during vehicle return.<br/><br/>" +
+                        $"User <strong>{reservation.User?.FirstName} {reservation.User?.LastName}</strong> reported an issue during asset return.<br/><br/>" +
                         "<ul>" +
                         $"<li><strong>Reservation ID:</strong> {reservation.Id}</li>" +
-                        $"<li><strong>Vehicle:</strong> {reservation.AssetTag}</li>" +
-                        $"<li><strong>Dirty vehicle:</strong> {(isCarDirty ? "Yes" : "No")}</li>" +
+                        $"<li><strong>Asset:</strong> {reservation.AssetTag}</li>" +
+                        $"<li><strong>Damaged asset:</strong> {(isAssetDamaged ? "Yes" : "No")}</li>" +
                         $"<li><strong>Faults:</strong> {(hasFaults ? (string.IsNullOrWhiteSpace(faults) ? "(no description)" : faults) : "No")}</li>" +
                         $"<li><strong>Mileage:</strong> {returnMileage:N0} km</li>" +
                         $"<li><strong>Fuel level:</strong> {fuelLevel}%</li>" +
@@ -868,7 +863,7 @@ TempData["error"] = "Reservation not found.";
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        private async Task<IEnumerable<SelectListItem>> GetCarSelectListAsync()
+        private async Task<IEnumerable<SelectListItem>> GetAssetSelectListAsync()
         {
             return (await _unitOfWork.Asset.GetAllAsync(c => !c.IsDeleted))
                 .Select(i => new SelectListItem
@@ -895,7 +890,7 @@ TempData["error"] = "Reservation not found.";
             FeedbackKind kind,
             int mileage,
             int? fuelLevel,
-            bool isCarDirty,
+            bool isAssetDamaged,
             bool hasFaults,
             string? faults)
         {
@@ -910,7 +905,7 @@ TempData["error"] = "Reservation not found.";
                 log.Status = FeedbackStatus.Provided;
                 log.Mileage = mileage;
                 log.FuelLevel = fuelLevel;
-                log.IsCarDirty = isCarDirty;
+                log.IsAssetDamaged = isAssetDamaged;
                 log.HasFaults = hasFaults;
                 log.Faults = hasFaults ? faults : null;
             }
@@ -926,7 +921,7 @@ TempData["error"] = "Reservation not found.";
                     CreatedAt = DateTime.Now,
                     Mileage = mileage,
                     FuelLevel = fuelLevel,
-                    IsCarDirty = isCarDirty,
+                    IsAssetDamaged = isAssetDamaged,
                     HasFaults = hasFaults,
                     Faults = hasFaults ? faults : null
                 });

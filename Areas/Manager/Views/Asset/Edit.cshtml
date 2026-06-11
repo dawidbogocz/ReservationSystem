@@ -16,16 +16,15 @@
 					<div class="border p-3 mt-2">
 						<div class="form-floating py-2 col-12">
 							<input asp-for="@Model.Asset.AssetTag" class="form-control border-0 shadow" />
-							<label asp-for="@Model.Asset.AssetTag" class="ms-2">Registration Number</label>
+							<label asp-for="@Model.Asset.AssetTag" class="ms-2">Asset Tag</label>
 							<span asp-validation-for="@Model.Asset.AssetTag" class="text-danger"></span>
 						</div>
 
 						<div class="form-floating py-2 col-12">
 							<select asp-for="Asset.AssetType" class="form-select border-0 shadow">
-								<option value="Car">Car</option>
-								<option value="Lift">Lift</option>
+								<option value="Default">Default</option>
 							</select>
-							<label asp-for="Asset.AssetType" class="ms-2">Vehicle type</label>
+							<label asp-for="Asset.AssetType" class="ms-2">Asset type</label>
 						</div>
 
 						<div class="form-floating py-2 col-12">
@@ -54,11 +53,11 @@
 
 						<div class="form-check form-switch py-2 col-12">
 							<input asp-for="@Model.Asset.IsDamaged" class="form-check-input" type="checkbox" />
-							<label asp-for="@Model.Asset.IsDamaged" class="form-check-label">Is the car dirty?</label>
+							<label asp-for="@Model.Asset.IsDamaged" class="form-check-label">Is the asset damaged?</label>
 						</div>
 						<div class="form-check form-switch py-2 col-12">
-							<input asp-for="@Model.Asset.HasTracking" class="form-check-input" type="checkbox" />
-							<label asp-for="@Model.Asset.HasTracking" class="form-check-label">Does the car have videotolling?</label>
+							<input asp-for="@Model.Asset.HasTelemetry" class="form-check-input" type="checkbox" />
+							<label asp-for="@Model.Asset.HasTelemetry" class="form-check-label">Does the asset have telemetry?</label>
 						</div>
 
 						<div class="form-floating py-2 col-12">
@@ -67,18 +66,18 @@
 						</div>
 
 						<div class="form-floating py-2 col-12">
-							<input asp-for="Asset.Mileage" class="form-control border-0 shadow" min="0" />
-							<label asp-for="Asset.Mileage" class="ms-2">Mileage (km)</label>
-							<span asp-validation-for="Asset.Mileage" class="text-danger"></span>
+							<input asp-for="Asset.UsageCount" class="form-control border-0 shadow" min="0" />
+							<label asp-for="Asset.UsageCount" class="ms-2">Usage count</label>
+							<span asp-validation-for="Asset.UsageCount" class="text-danger"></span>
 						</div>
 
-						<div class="py-2 col-12" id="fuelSection">
-							<label class="form-label" asp-for="Asset.FuelLevel" id="fuelLabel">Fuel (%)</label>
-							<input type="range" asp-for="Asset.FuelLevel" class="form-range" min="0" max="100" oninput="updateFuel(this.value)">
+						<div class="py-2 col-12" id="conditionSection">
+							<label class="form-label" asp-for="Asset.ConditionLevel" id="conditionLabel">Condition [%]</label>
+							<input type="range" asp-for="Asset.ConditionLevel" class="form-range" min="0" max="100" oninput="updateCondition(this.value)">
 							<div class="progress" style="height:20px;">
-								<div id="fuelBar" class="progress-bar bg-success" role="progressbar" style="width:50%">50%</div>
+								<div id="conditionBar" class="progress-bar bg-success" role="progressbar" style="width:50%">50%</div>
 							</div>
-							<span asp-validation-for="Asset.FuelLevel" class="text-danger"></span>
+							<span asp-validation-for="Asset.ConditionLevel" class="text-danger"></span>
 						</div>
 
 						<div class="row pt-2">
@@ -101,8 +100,8 @@
 		<partial name="_ValidationScriptsPartial" />
 	}
 	<script>
-		function updateFuel(val){
-			const bar = document.getElementById('fuelBar');
+		function updateCondition(val){
+			const bar = document.getElementById('conditionBar');
 			bar.style.width = val + '%';
 			bar.innerText   = val + '%';
 
@@ -110,11 +109,6 @@
 			else if (val < 60) bar.className = 'progress-bar bg-warning';
 			else               bar.className = 'progress-bar bg-success';
 		}
-		
-		document.getElementById('Car_AssetType').addEventListener('change', function () {
-			const label = document.getElementById('fuelLabel');
-			label.innerText = this.value === 'Lift' ? 'Charge level (SoC %)' : 'Fuel (%)';
-		});
 	</script>
 
 }

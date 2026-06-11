@@ -65,7 +65,7 @@ namespace ReservationApp.DataAccess.Data
             base.OnModelCreating(modelBuilder);
 
             // Apply global query filter for soft-delete
-            modelBuilder.Entity<Asset>().HasQueryFilter(c => !c.IsDeleted);
+            modelBuilder.Entity<Asset>().HasQueryFilter(a => !a.IsDeleted);
 
             // Configure ApplicationUser discriminator explicitly.
             // After switching from IdentityDbContext<IdentityUser> to
@@ -80,21 +80,21 @@ namespace ReservationApp.DataAccess.Data
 
             // Seed initial data for Asset entities.
             modelBuilder.Entity<Asset>().HasData(
-                new Asset { AssetTag = "ABC123", Make = "Toyota", Model = "Corolla", InspectionDate = new System.DateOnly(2022, 1, 1), ServiceDate = new System.DateOnly(2022, 1, 1), ImageUrl = "" },
-                new Asset { AssetTag = "DEF456", Make = "Audi", Model = "A4", InspectionDate = new System.DateOnly(2022, 1, 1), ServiceDate = new System.DateOnly(2022, 1, 1), ImageUrl = "" }
+                new Asset { AssetTag = "AST-001", Make = "Generic", Model = "Standard", AssetType = AssetType.Default, InspectionDate = new System.DateOnly(2022, 1, 1), ServiceDate = new System.DateOnly(2022, 1, 1), ImageUrl = "" },
+                new Asset { AssetTag = "AST-002", Make = "Generic", Model = "Premium", AssetType = AssetType.Default, InspectionDate = new System.DateOnly(2022, 1, 1), ServiceDate = new System.DateOnly(2022, 1, 1), ImageUrl = "" }
             );
 
             // Seed initial data for Reservation entities.
             modelBuilder.Entity<Reservation>().HasData(
-                new Reservation { Id = 1, AssetTag = "ABC123", UserId = "1", PickupDate = new System.DateTime(2022, 1, 1), ReturnDate = new System.DateTime(2022, 1, 2), Destination = "Wadowice", Approval = Approval.Pending },
-                new Reservation { Id = 2, AssetTag = "DEF456", UserId = "2", PickupDate = new System.DateTime(2022, 1, 3), ReturnDate = new System.DateTime(2022, 1, 4), Destination = "Krakow", Approval = Approval.Accepted },
-                new Reservation { Id = 3, AssetTag = "ABC123", UserId = "3", PickupDate = new System.DateTime(2022, 1, 5), ReturnDate = new System.DateTime(2022, 1, 6), Destination = "Warsaw", Approval = Approval.Rejected }
+                new Reservation { Id = 1, AssetTag = "AST-001", UserId = "1", PickupDate = new System.DateTime(2022, 1, 1), ReturnDate = new System.DateTime(2022, 1, 2), Destination = "Wadowice", Approval = Approval.Pending },
+                new Reservation { Id = 2, AssetTag = "AST-002", UserId = "2", PickupDate = new System.DateTime(2022, 1, 3), ReturnDate = new System.DateTime(2022, 1, 4), Destination = "Krakow", Approval = Approval.Accepted },
+                new Reservation { Id = 3, AssetTag = "AST-001", UserId = "3", PickupDate = new System.DateTime(2022, 1, 5), ReturnDate = new System.DateTime(2022, 1, 6), Destination = "Warsaw", Approval = Approval.Rejected }
             );
 
             // Seed initial data for Fault entities.
             modelBuilder.Entity<Fault>().HasData(
-                new Fault { Id = 1, Description = "Fault1", AssetTag = "ABC123", UserId = "1" },
-                new Fault { Id = 2, Description = "Fault2", AssetTag = "DEF456", UserId = "2" }
+                new Fault { Id = 1, Description = "Fault1", AssetTag = "AST-001", UserId = "1" },
+                new Fault { Id = 2, Description = "Fault2", AssetTag = "AST-002", UserId = "2" }
             );
 
             modelBuilder.Entity<ApplicationUser>()
